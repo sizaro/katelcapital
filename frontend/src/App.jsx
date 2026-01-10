@@ -1,67 +1,58 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 
+/* ===== PUBLIC / LANDING PAGES ===== */
 import Home from "./pages/landing/Home.jsx";
 import About from "./pages/landing/About.jsx";
-import Services from "./pages/landing/Services.jsx";
+import Jobs from "./pages/landing/Jobs.jsx";
+import Workers from "./pages/landing/Workers.jsx";
 import Contact from "./pages/landing/Contact.jsx";
-
 import ResetPassword from "./pages/landing/ResetPassword.jsx";
 
-import OwnerLayout from "./components/layout/OwnerLayout.jsx";
-import ManagerLayout from "./components/layout/ManagerLayout.jsx";
-import EmployeeLayout from "./components/layout/EmployeeLayout.jsx";
-import CustomerLayout from "./components/layout/CustomerLayout.jsx";
-
+/* ===== DASHBOARD LAYOUTS ===== */
+import AdminLayout from "./components/layout/AdminLayout.jsx";
+import EmployerLayout from "./components/layout/EmployerLayout.jsx";
+import WorkerLayout from "./components/layout/WorkerLayout.jsx";
 
 function App() {
   return (
       <Routes>
-        {/* Public Landing Routes */}
+        {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/workers" element={<Workers />} />
         <Route path="/contact" element={<Contact />} />
-        {/* Reset Password (public) */}
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-        
 
-        {/* Owner Routes */}
+        {/* Auth */}
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* ================= ADMIN ROUTES ================= */}
         <Route
-          path="/owner/*"
+          path="/admin/*"
           element={
-            <ProtectedRoute role="owner">
-              <OwnerLayout />
+            <ProtectedRoute role="admin">
+              <AdminLayout />
             </ProtectedRoute>
           }
         />
 
-        {/*  Manager Routes */}
+        {/* ================= EMPLOYER ROUTES ================= */}
         <Route
-          path="/manager/*"
+          path="/employer/*"
           element={
-            <ProtectedRoute role="manager">
-              <ManagerLayout />
+            <ProtectedRoute role="employer">
+              <EmployerLayout />
             </ProtectedRoute>
           }
         />
 
-        {/* Employee Routes */}
+        {/* ================= WORKER ROUTES ================= */}
         <Route
-          path="/employee/*"
+          path="/worker/*"
           element={
-            <ProtectedRoute role="employee">
-              <EmployeeLayout />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Customer Routes */}
-        <Route
-          path="/customer/*"
-          element={
-            <ProtectedRoute role="customer">
-              <CustomerLayout />
+            <ProtectedRoute role="worker">
+              <WorkerLayout />
             </ProtectedRoute>
           }
         />

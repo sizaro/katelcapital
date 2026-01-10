@@ -13,17 +13,8 @@ import "./config/passport.js";
 
 dotenv.config();
 
-import servicesRoutes from "./routes/servicesRoutes.js";
-import serviceRoutet from "./routes/serviceRoutet.js";
-import expensesRoutes from "./routes/expensesRoutes.js";
-import advancesRoutes from "./routes/advancesRoutes.js";
-import clockingsRoutes from "./routes/clockingsRoutes.js";
-import sessionsRoutes from "./routes/sessionsRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
-import reportsRoutes from "./routes/reportsRoutes.js";
-import feesRoutes from "./routes/feesRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import sectionsRoutes from "./routes/sectionsRoutes.js"
 
 const app = express();
 
@@ -86,7 +77,7 @@ const sessionStore = new PgSessionStore({
           port: 5433,
           user: "postgres",
           password: "postgres",
-          database: "salonmanagementsystemv2_db",
+          database: "katel_capital_db",
           ssl: false,
         },
       }),
@@ -121,17 +112,8 @@ app.use("/uploads/images", express.static(path.join(__dirname, "/uploads/images"
 
 
 // --- Routes ---
-app.use("/api/services", servicesRoutes);
-app.use("/api/servicet", serviceRoutet);
-app.use("/api/expenses", expensesRoutes);
-app.use("/api/advances", advancesRoutes);
-app.use("/api/clockings", clockingsRoutes);
-app.use("/api/sessions", sessionsRoutes);
 app.use("/api/users", usersRoutes);
-app.use("/api/reports", reportsRoutes);
-app.use("/api/fees", feesRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/sections", sectionsRoutes)
 
 
 

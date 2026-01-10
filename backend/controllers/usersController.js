@@ -34,7 +34,7 @@ export const getUserById = async (req, res) => {
     const { id } = req.params;
     const salon_id = req.user?.salon_id || process.env.DEFAULT_SALON_ID;
 
-    const user = await fetchUserById(id, salon_id);
+    const user = await fetchUserById(id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     res.status(200).json(user);
@@ -133,7 +133,7 @@ export const updateUserById = async (req, res) => {
       return res.status(400).json({ error: "Missing user ID" });
     }
 
-    const existingUser = await fetchUserById(id, salon_id);
+    const existingUser = await fetchUserById(id);
     if (!existingUser) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -196,7 +196,7 @@ export const deleteUserById = async (req, res) => {
     const { id } = req.params;
     const salon_id = req.user?.salon_id || process.env.DEFAULT_SALON_ID;
 
-    const existingUser = await fetchUserById(id, salon_id);
+    const existingUser = await fetchUserById(id);
     if (!existingUser) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -207,7 +207,7 @@ export const deleteUserById = async (req, res) => {
       if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
     }
 
-    await DeleteUserById(id, salon_id);
+    await DeleteUserById(id);
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {

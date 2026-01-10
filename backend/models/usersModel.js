@@ -3,7 +3,7 @@ import db from './database.js';
 /**
  * Fetch all users for a given salon
  */
-export const fetchAllUsers = async (salon_id) => {
+export const fetchAllUsers = async () => {
   const query = `
     SELECT u.*,
            (u.created_at AT TIME ZONE 'Africa/Kampala') AS user_time
@@ -18,9 +18,9 @@ export const fetchAllUsers = async (salon_id) => {
 /**
  * Fetch single user by ID for a given salon
  */
-export const fetchUserById = async (id, salon_id) => {
-  const query = `SELECT * FROM users WHERE id = $1 AND salon_id = $2;`;
-  const result = await db.query(query, [id, salon_id]);
+export const fetchUserById = async (id) => {
+  const query = `SELECT * FROM users WHERE id = $1;`;
+  const result = await db.query(query, [id]);
   return result.rows[0];
 };
 
@@ -167,23 +167,23 @@ export const DeleteUserById = async (id, salon_id) => {
 /**
  * Find user by email (for a specific salon)
  */
-export const findUserByEmail = async (email, salon_id) => {
-  console.log("🔹 findUserByEmail called:", { email, salon_id });
-  const query = "SELECT * FROM users WHERE email = $1 AND salon_id = $2";
-  const result = await db.query(query, [email, salon_id]);
+export const findUserByEmail = async (email) => {
+  console.log("🔹 findUserByEmail called:", { email });
+  const query = "SELECT * FROM users WHERE email = $1;";
+  const result = await db.query(query, [email]);
   return result.rows[0];
 };
 
 /**
  * Find user by ID (limited fields) for a specific salon
  */
-export const findUserById = async (id, salon_id) => {
+export const findUserById = async (id) => {
   const query = `
-    SELECT id, first_name, last_name, email, role, salon_id 
+    SELECT id, first_name, last_name, email, role 
     FROM users 
-    WHERE id = $1 AND salon_id = $2
+    WHERE id = $1;
   `;
-  const result = await db.query(query, [id, salon_id]);
+  const result = await db.query(query, [id]);
   return result.rows[0];
 };
 

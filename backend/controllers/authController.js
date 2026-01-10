@@ -69,7 +69,7 @@ export const forgotPasswordController = async (req, res) => {
 
   try {
     // 1️⃣ Find user by email + salon_id
-    const user = await findUserByEmail(email, salon_id);
+    const user = await findUserByEmail(email);
     if (!user)
       return res.status(404).json({ message: "No user with that email" });
 
@@ -78,7 +78,7 @@ export const forgotPasswordController = async (req, res) => {
     const expiresAt = new Date(Date.now() + 3600 * 1000);
 
     // 3️⃣ Save reset token (WITH salon_id)
-    await createPasswordReset(user.id, token, expiresAt, salon_id);
+    await createPasswordReset(user.id, token, expiresAt);
 
     // 4️⃣ Email transport
     const transporter = nodemailer.createTransport({
@@ -138,7 +138,7 @@ export const resetPasswordController = async (req, res) => {
     );
 
     // 3️⃣ Delete token
-    await deletePasswordResetById(resetEntry.id, salon_id);
+    await deletePasswordResetById(resetEntry.id);
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (err) {
