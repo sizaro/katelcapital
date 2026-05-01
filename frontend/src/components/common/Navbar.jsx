@@ -149,7 +149,8 @@ export default function Navbar() {
           {[
             { to: "/jobs", label: "Find Work" },
             { to: "/workers", label: "Hire Talent" },
-            { to: "/about", label: "Why Katel" },
+            { to: "/about", label: "About" },
+            { to: "/Why", label: "Why Katel" },
             { to: "/pricing", label: "Pricing" },
           ].map((link) => (
             <NavLink

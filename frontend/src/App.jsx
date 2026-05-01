@@ -7,6 +7,7 @@ import About from "./pages/landing/About.jsx";
 import Jobs from "./pages/landing/Jobs.jsx";
 import Workers from "./pages/landing/Workers.jsx";
 import Contact from "./pages/landing/Contact.jsx";
+import WhyKatel from "./pages/landing/WhyKatel.jsx";
 import ResetPassword from "./pages/landing/ResetPassword.jsx";
 
 /* ===== DASHBOARD LAYOUTS ===== */
@@ -23,6 +24,7 @@ function App() {
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/workers" element={<Workers />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/Why" element={<WhyKatel />} />
 
         {/* Auth */}
         <Route path="/reset-password/:token" element={<ResetPassword />} />
