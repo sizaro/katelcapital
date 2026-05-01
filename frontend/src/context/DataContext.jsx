@@ -7,11 +7,84 @@ import { io } from "socket.io-client";
 
 const DataContext = createContext();
 
+const mockUsers = [
+  {
+    id: 1,
+    name: "Kato John",
+    role: "employer",
+    company: "Katel Logistics",
+  },
+  {
+    id: 2,
+    name: "Sarah Namusoke",
+    role: "worker",
+    skills: ["Plumbing", "Repairs"],
+    rating: 4.8,
+  },
+  {
+    id: 3,
+    name: "Musa Peter",
+    role: "worker",
+    skills: ["Electrician"],
+    rating: 4.5,
+  },
+];
+
+const mockJobs = [
+  {
+    id: 1,
+    title: "Fix water pipes",
+    description: "Need urgent plumbing repair",
+    budget: 50000,
+    employerId: 1,
+  },
+  {
+    id: 2,
+    title: "House wiring",
+    description: "Install full wiring",
+    budget: 150000,
+    employerId: 1,
+  },
+];
+
+const mockApplications = [
+  {
+    id: 1,
+    jobId: 1,
+    workerId: 2,
+    coverLetter: "I can fix this quickly",
+  },
+];
+
+const mockContracts = [
+  {
+    id: 1,
+    jobId: 1,
+    workerId: 2,
+    employerId: 1,
+    status: "active",
+  },
+];
+
+const mockMessages = [
+  {
+    id: 1,
+    senderId: 1,
+    receiverId: 2,
+    text: "Are you available?",
+  },
+];
+
 
 export const DataProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+const [jobs, setJobs] = useState([]);
+const [applications, setApplications] = useState([]);
+const [contracts, setContracts] = useState([]);
+const [messages, setMessages] = useState([]);
+const [currentUser, setCurrentUser] = useState(null);
 
 
   const navigate = useNavigate();
@@ -26,15 +99,104 @@ export const DataProvider = ({ children }) => {
 });
 
   // ---------- Employees CRUD ----------
+  // const fetchUsers = async () => {
+  //   try {
+  //     const res = await axios.get(`${API_URL}/users`);
+  //     setUsers(res.data);
+  //     return res.data;
+  //   } catch (err) {
+  //     console.error("Error fetching employees:", err);
+  //     throw err;
+  // };}
+
+
   const fetchUsers = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/users`);
-      setUsers(res.data);
-      return res.data;
-    } catch (err) {
-      console.error("Error fetching employees:", err);
-      throw err;
-  };}
+  await new Promise((res) => setTimeout(res, 300));
+  setUsers(mockUsers);
+};
+
+const fetchJobs = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  setJobs(mockJobs);
+};
+
+const fetchApplications = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  setApplications(mockApplications);
+};
+
+const fetchContracts = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  setContracts(mockContracts);
+};
+
+const fetchMessages = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  setMessages(mockMessages);
+};
+
+const createJob = async (jobData) => {
+  const newJob = {
+    id: Date.now(),
+    ...jobData,
+  };
+
+  setJobs((prev) => [...prev, newJob]);
+  return { success: true };
+};
+
+
+const applyToJob = async (jobId, workerId) => {
+  const newApp = {
+    id: Date.now(),
+    jobId,
+    workerId,
+  };
+
+  setApplications((prev) => [...prev, newApp]);
+  return { success: true };
+};
+
+const hireWorker = async ({ jobId, workerId, employerId }) => {
+  const contract = {
+    id: Date.now(),
+    jobId,
+    workerId,
+    employerId,
+    status: "active",
+  };
+
+  setContracts((prev) => [...prev, contract]);
+  return { success: true };
+};
+
+const sendMessage = async ({ senderId, receiverId, text }) => {
+  const msg = {
+    id: Date.now(),
+    senderId,
+    receiverId,
+    text,
+  };
+
+  setMessages((prev) => [...prev, msg]);
+};
+
+const searchJobs = (query) => {
+  return jobs.filter((job) =>
+    job.title.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
+const searchWorkers = (query) => {
+  return users.filter(
+    (u) =>
+      u.role === "worker" &&
+      u.skills?.some((s) =>
+        s.toLowerCase().includes(query.toLowerCase())
+      )
+  );
+};
+
 
   const fetchUserById = async (id) => {
     try {
@@ -224,7 +386,25 @@ const resetPassword = async (payload) => {
   return (
     <DataContext.Provider
       value={{
-        user,
+    jobs,
+    applications,
+    contracts,
+    messages,
+    currentUser,
+
+    fetchUsers,
+    fetchJobs,
+    fetchApplications,
+    fetchContracts,
+    fetchMessages,
+
+    createJob,
+    applyToJob,
+    hireWorker,
+    sendMessage,
+
+    searchJobs,
+    searchWorkers,
         users,
         loading,
         fetchUsers,

@@ -1,4 +1,3 @@
-// src/components/common/Navbar.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Modal from "../Modal.jsx";
@@ -7,6 +6,7 @@ import UserForm from "../UserForm.jsx";
 import ForgotPasswordForm from "../auth/ForgotPasswordForm.jsx";
 import ToastModal from "../ToastModal.jsx";
 import { useData } from "../../context/DataContext.jsx";
+import useHeroVisible from "./useHeroVisible.jsx";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,23 +17,33 @@ export default function Navbar() {
   const [accountOptions, setAccountOptions] = useState(false);
   const [authForm, setAuthForm] = useState("login");
   const [toast, setToast] = useState({ message: "", type: "success" });
+  const [search, setSearch] = useState("");
 
-  const { loginUser, createUser, checkAuth, forgotPassword } = useData();
+  const isHeroVisible = useHeroVisible();
+
+  const {
+    loginUser,
+    createUser,
+    checkAuth,
+    forgotPassword,
+    searchJobs,
+    searchWorkers,
+  } = useData();
+
   const navigate = useNavigate();
   const accountRef = useRef(null);
 
-  /* ================= CLICK OUTSIDE ================= */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (accountRef.current && !accountRef.current.contains(e.target)) {
         setAccountOptions(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ================= LOGIN ================= */
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
@@ -54,10 +64,8 @@ export default function Navbar() {
     }
   };
 
-  /* ================= REGISTER ================= */
   const handleRegister = async (formData) => {
     try {
-      // default role for MVP
       await createUser({ ...formData, role: "worker" });
       setRegisterOpen(false);
       setLoginOpen(true);
@@ -66,7 +74,20 @@ export default function Navbar() {
     }
   };
 
-  /* ================= FORGOT PASSWORD ================= */
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+
+    const jobResults = searchJobs(search);
+    const workerResults = searchWorkers(search);
+
+    if (jobResults.length > 0) {
+      navigate("/jobs", { state: { results: jobResults } });
+    } else {
+      navigate("/workers", { state: { results: workerResults } });
+    }
+  };
+
   const handleForgotPasswordSubmit = async (email) => {
     setLoading(true);
     const res = await forgotPassword(email);
@@ -83,23 +104,40 @@ export default function Navbar() {
       setToast({ message: "", type: "success" });
       setAuthForm("login");
       setLoginOpen(false);
-    }, 5000);
+    }, 4000);
   };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+
         {/* BRAND */}
-        <NavLink to="/" className="text-xl md:text-2xl font-bold text-blue-700">
-          Katel Capital Ltd
+        <NavLink to="/" className="text-xl font-bold text-blue-700">
+          Katel Capital
         </NavLink>
 
-        {/* MOBILE MENU */}
+        {/* SEARCH (only when hero is NOT visible) */}
+        {!isHeroVisible && (
+          <form onSubmit={handleSearch} className="hidden md:flex w-[40%]">
+            <input
+              type="text"
+              placeholder="Search jobs or workers..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full border rounded-l px-3 py-2"
+            />
+            <button className="bg-blue-600 text-white px-4 rounded-r">
+              Search
+            </button>
+          </form>
+        )}
+
+        {/* MOBILE MENU BUTTON (☰ / ✕ toggle) */}
         <button
-          className="sm:hidden text-blue-700 text-2xl"
+          className="sm:hidden text-blue-700 text-2xl transition"
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          ☰
+          {menuOpen ? "✕" : "☰"}
         </button>
 
         {/* NAV LINKS */}
@@ -109,17 +147,17 @@ export default function Navbar() {
           } sm:flex absolute sm:static top-14 left-0 w-full sm:w-auto bg-white sm:space-x-6`}
         >
           {[
-            { to: "/", label: "Home" },
-            { to: "/about", label: "About" },
-            { to: "/jobs", label: "Jobs" },
-            { to: "/workers", label: "Workers" },
-            { to: "/contact", label: "Contact" },
+            { to: "/jobs", label: "Find Work" },
+            { to: "/workers", label: "Hire Talent" },
+            { to: "/about", label: "Why Katel" },
+            { to: "/pricing", label: "Pricing" },
           ].map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
+              onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
-                `block px-4 py-2 font-medium border-b-2 transition ${
+                `block px-4 py-2 font-medium border-b-2 ${
                   isActive
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-700 hover:border-blue-500"
@@ -134,7 +172,7 @@ export default function Navbar() {
           <div className="relative px-4" ref={accountRef}>
             <button
               onClick={() => setAccountOptions(!accountOptions)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded"
             >
               Account
             </button>
@@ -159,7 +197,21 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* LOGIN MODAL */}
+      {/* MOBILE SEARCH */}
+      {!isHeroVisible && (
+        <form onSubmit={handleSearch} className="flex md:hidden w-full">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border px-3 py-2"
+          />
+          <button className="bg-blue-600 text-white px-4">Search</button>
+        </form>
+      )}
+
+      {/* MODALS (unchanged) */}
       <Modal isOpen={loginOpen} onClose={() => setLoginOpen(false)}>
         {authForm === "login" ? (
           <LoginForm
@@ -177,7 +229,6 @@ export default function Navbar() {
         )}
       </Modal>
 
-      {/* REGISTER MODAL */}
       <Modal isOpen={registerOpen} onClose={() => setRegisterOpen(false)}>
         <UserForm role="worker" onSubmit={handleRegister} />
       </Modal>
