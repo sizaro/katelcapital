@@ -9,7 +9,7 @@ export default function Home() {
 
       {/* ================= HERO ================= */}
 <header
-  className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden"
+  className="relative w-full min-h-[80vh] flex items-center justify-center overflow-hidden"
 >
   {/* Background Image */}
   <img
@@ -19,7 +19,7 @@ export default function Home() {
   />
 
   {/* Dark overlay */}
-  <div className="absolute inset-0 bg-[#003F8E]/70"></div>
+  <div className="absolute inset-0 bg-[#003F8E]/60"></div>
 
   {/* Content */}
   <div className="relative z-10 text-center max-w-3xl px-6 text-white">
