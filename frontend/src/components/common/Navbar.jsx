@@ -67,9 +67,9 @@ export default function Navbar() {
             <img
               src="/images/katel_capital_logo1.png"
               alt="Katel Capital"
-              className="h-20 w-auto rounded-full"
+              className="md:h-20 w-auto rounded-full h-12"
             />
-            <span className="text-lg font-bold text-[#003F8E]">
+            <span className="text-sm md:text-lg font-bold text-[#003F8E]">
               Katel Capital
             </span>
           </NavLink>
@@ -106,16 +106,16 @@ export default function Navbar() {
 
             <button
               onClick={() => navigate("/organizations")}
-              className="border border-[#003F8E] text-[#003F8E] px-3 py-1 rounded-lg text-sm"
+              className="border border-[#003F8E] text-[#003F8E] px-3 py-1 rounded-lg text-sm md:text-md"
             >
               Start Hiring
             </button>
 
             <button
               onClick={() => navigate("/professionals")}
-              className="bg-[#003F8E] text-white px-3 py-1 rounded-lg text-sm"
+              className="bg-[#003F8E] text-white px-3 py-1 rounded-lg text-sm md:text-md"
             >
-              Apply For a Job
+              Find Work
             </button>
 
             <button
@@ -139,7 +139,7 @@ export default function Navbar() {
               onClick={() => navigate("/professionals")}
               className="bg-[#003F8E] text-white px-4 py-2 rounded-lg hover:opacity-90"
             >
-              Apply for a Job
+              Find Work
             </button>
           </div>
         </div>
