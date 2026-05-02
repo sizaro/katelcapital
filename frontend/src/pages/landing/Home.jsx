@@ -8,34 +8,32 @@ export default function Home() {
       <Navbar />
 
       {/* ================= HERO ================= */}
-      <header className="relative w-full min-h-[85vh] flex items-center justify-center bg-[#003F8E] text-white px-6">
-        <div className="text-center max-w-4xl">
+<header
+  className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden"
+>
+  {/* Background Image */}
+  <img
+    src="/images/katel_capital_hero.jpg"
+    alt="Katel Capital"
+    className="absolute inset-0 w-full h-full object-cover"
+  />
 
-          <h1 className="text-3xl md:text-5xl font-bold mb-6">
-            Unlock Talent. Build Stronger Teams.
-          </h1>
+  {/* Dark overlay */}
+  <div className="absolute inset-0 bg-[#003F8E]/70"></div>
 
-          <p className="text-lg md:text-xl mb-8 text-gray-100">
-            Katel Capital helps organizations grow by connecting them with
-            skilled, reliable professionals ready to contribute from day one.
-          </p>
+  {/* Content */}
+  <div className="relative z-10 text-center max-w-3xl px-6 text-white">
+    
+    <h1 className="text-4xl md:text-6xl font-bold mb-6">
+      Unlock Talent. Build Stronger Teams.
+    </h1>
 
-          <p className="mb-10 text-gray-200">
-            We simplify hiring, reduce staffing costs, and provide ongoing workforce
-            support so organizations can focus on what matters most — building their mission.
-          </p>
+    <p className="text-lg md:text-xl text-gray-100">
+      A simple way to connect skilled professionals with organizations that need them.
+    </p>
 
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button className="bg-[#F7C621] text-black px-6 py-3 rounded-lg font-semibold hover:opacity-90">
-              Start Hiring
-            </button>
-
-            <button className="border border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#003F8E] transition">
-              Join the Talent Network
-            </button>
-          </div>
-        </div>
-      </header>
+  </div>
+</header>
 
       {/* ================= CHALLENGES ================= */}
       <section className="py-16 px-6 max-w-6xl mx-auto">

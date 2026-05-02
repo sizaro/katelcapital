@@ -33,7 +33,6 @@ export default function Navbar() {
   const navigate = useNavigate();
   const accountRef = useRef(null);
 
-  /* CLICK OUTSIDE */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (accountRef.current && !accountRef.current.contains(e.target)) {
@@ -44,7 +43,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* LOGIN */
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
@@ -65,7 +63,6 @@ export default function Navbar() {
     }
   };
 
-  /* REGISTER */
   const handleRegister = async (formData) => {
     try {
       await createUser({ ...formData, role: "worker" });
@@ -76,7 +73,6 @@ export default function Navbar() {
     }
   };
 
-  /* SEARCH */
   const handleSearch = (e) => {
     e.preventDefault();
     if (!search.trim()) return;
@@ -91,7 +87,6 @@ export default function Navbar() {
     }
   };
 
-  /* FORGOT PASSWORD */
   const handleForgotPasswordSubmit = async (email) => {
     setLoading(true);
     const res = await forgotPassword(email);
@@ -117,31 +112,15 @@ export default function Navbar() {
 
         {/* BRAND */}
         <NavLink to="/" className="flex items-center gap-2">
-  <img
-    src="/images/katel_capital_logo1.png"
-    alt="Katel Capital"
-    className="h-20 w-auto rounded-full"
-  />
-  <span className="text-lg font-bold text-[#003F8E] hidden sm:block">
-    Katel Capital
-  </span>
-</NavLink>
-
-        {/* SEARCH (only when hero NOT visible) */}
-        {!isHeroVisible && (
-          <form onSubmit={handleSearch} className="hidden md:flex w-[40%]">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border rounded-l px-3 py-2"
-            />
-            <button className="bg-[#003F8E] text-white px-4 rounded-r">
-              Search
-            </button>
-          </form>
-        )}
+          <img
+            src="/images/katel_capital_logo1.png"
+            alt="Katel Capital"
+            className="h-20 w-auto rounded-full"
+          />
+          <span className="text-lg font-bold text-[#003F8E] hidden sm:block">
+            Katel Capital
+          </span>
+        </NavLink>
 
         {/* MOBILE MENU BUTTON */}
         <button
@@ -160,7 +139,10 @@ export default function Navbar() {
           {[
             { to: "/", label: "Home" },
             { to: "/professionals", label: "Professionals" },
-            { to: "/companies", label: "Companies" },
+            { to: "/organizations", label: "Organizations" },
+            { to: "/services", label: "Services" },
+            { to: "/pricing", label: "Pricing" },
+            { to: "/contact", label: "Contact" },
             { to: "/about", label: "About Katel" },
           ].map((link) => (
             <NavLink
@@ -183,7 +165,7 @@ export default function Navbar() {
           <div className="sm:hidden flex flex-col gap-3 px-4 py-4">
             <button
               onClick={() => {
-                navigate("/companies");
+                navigate("/organizations");
                 setMenuOpen(false);
               }}
               className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg"
@@ -206,7 +188,7 @@ export default function Navbar() {
         {/* DESKTOP BUTTONS */}
         <div className="hidden md:flex items-center gap-3 ml-4">
           <button
-            onClick={() => navigate("/companies")}
+            onClick={() => navigate("/organizations")}
             className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100"
           >
             Start Hiring
@@ -219,25 +201,10 @@ export default function Navbar() {
             Apply for a Job
           </button>
         </div>
+
       </div>
 
-      {/* MOBILE SEARCH */}
-      {!isHeroVisible && (
-        <form onSubmit={handleSearch} className="flex md:hidden w-full">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full border px-3 py-2"
-          />
-          <button className="bg-[#003F8E] text-white px-4">
-            Search
-          </button>
-        </form>
-      )}
-
-      {/* MODALS (kept but hidden from UI use) */}
+      {/* MODALS (unchanged) */}
       <Modal isOpen={loginOpen} onClose={() => setLoginOpen(false)}>
         {authForm === "login" ? (
           <LoginForm

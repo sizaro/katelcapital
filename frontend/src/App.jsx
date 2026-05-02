@@ -4,16 +4,14 @@ import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
 /* ===== PUBLIC / LANDING PAGES ===== */
 import Home from "./pages/landing/Home.jsx";
 import About from "./pages/landing/About.jsx";
-import Jobs from "./pages/landing/Jobs.jsx";
-import Workers from "./pages/landing/Workers.jsx";
+import Professionals from "./pages/landing/Professionals.jsx";
+import Organizations from "./pages/landing/Organizations.jsx";
+import Services from "./pages/landing/Services.jsx";
+import Pricing from "./pages/landing/Pricing";
 import Contact from "./pages/landing/Contact.jsx";
-import WhyKatel from "./pages/landing/WhyKatel.jsx";
-import ResetPassword from "./pages/landing/ResetPassword.jsx";
 
-/* ===== DASHBOARD LAYOUTS ===== */
-import AdminLayout from "./components/layout/AdminLayout.jsx";
-import EmployerLayout from "./components/layout/EmployerLayout.jsx";
-import WorkerLayout from "./components/layout/WorkerLayout.jsx";
+
+
 
 function App() {
   return (
@@ -21,43 +19,14 @@ function App() {
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/jobs" element={<Jobs />} />
-        <Route path="/workers" element={<Workers />} />
+        <Route path="/professionals" element={<Professionals />} />
+        <Route path="/organizations" element={<Organizations />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/Why" element={<WhyKatel />} />
 
-        {/* Auth */}
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* ================= ADMIN ROUTES ================= */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        />
 
-        {/* ================= EMPLOYER ROUTES ================= */}
-        <Route
-          path="/employer/*"
-          element={
-            <ProtectedRoute role="employer">
-              <EmployerLayout />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ================= WORKER ROUTES ================= */}
-        <Route
-          path="/worker/*"
-          element={
-            <ProtectedRoute role="worker">
-              <WorkerLayout />
-            </ProtectedRoute>
-          }
-        />
       </Routes>
   );
 }

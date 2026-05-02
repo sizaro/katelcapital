@@ -1,58 +1,98 @@
-// src/pages/Landing/Contact.jsx
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
 export default function Contact() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    organization: "",
+    message: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // For now we just open email or Google Form later
+    window.open("https://forms.gle/YOUR_GOOGLE_FORM_LINK", "_blank");
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="bg-[#F7F7F7] min-h-screen">
       <Navbar />
 
-      <main className="flex-1 py-16 px-6 max-w-4xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">
-          Contact Katel Capital Ltd
+      {/* ================= HERO ================= */}
+      <section className="bg-[#003F8E] text-white py-20 px-6 text-center">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4">
+          Let’s Build Something Together
         </h1>
 
-        <p className="text-gray-700 mb-8">
-          Employers, workers, or partners — we’d love to hear from you.
+        <p className="max-w-3xl mx-auto text-gray-100 text-lg">
+          Whether you are an organization seeking talent or a professional
+          seeking opportunity, we would love to hear from you.
         </p>
+      </section>
 
-        <form className="bg-white shadow-md rounded-xl p-8 text-left space-y-4">
-          <div>
-            <label className="block text-gray-700 mb-2">Full Name</label>
+      {/* ================= CONTACT FORM ================= */}
+      <section className="max-w-3xl mx-auto px-6 py-16">
+        <div className="bg-white shadow rounded-xl p-6">
+          <h2 className="text-2xl font-bold text-[#003F8E] mb-6 text-center">
+            Contact Us
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
-              className="w-full border rounded p-2"
-              placeholder="Your name"
+              name="name"
+              placeholder="Name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full border p-3 rounded-lg"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-gray-700 mb-2">Email</label>
             <input
               type="email"
-              className="w-full border rounded p-2"
-              placeholder="you@example.com"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full border p-3 rounded-lg"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-gray-700 mb-2">Message</label>
+            <input
+              type="text"
+              name="organization"
+              placeholder="Organization (optional)"
+              value={form.organization}
+              onChange={handleChange}
+              className="w-full border p-3 rounded-lg"
+            />
+
             <textarea
-              className="w-full border rounded p-2"
+              name="message"
+              placeholder="Message"
+              value={form.message}
+              onChange={handleChange}
               rows="5"
-              placeholder="Tell us how we can help"
+              className="w-full border p-3 rounded-lg"
               required
             />
-          </div>
 
-          <button className="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 transition">
-            Send Message
-          </button>
-        </form>
-      </main>
+            <button
+              type="submit"
+              className="w-full bg-[#003F8E] text-white py-3 rounded-lg font-semibold hover:opacity-90"
+            >
+              Send Message
+            </button>
+          </form>
+        </div>
+      </section>
 
       <Footer />
     </div>
