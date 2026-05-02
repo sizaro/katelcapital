@@ -33,17 +33,18 @@ export default function Navbar() {
   const navigate = useNavigate();
   const accountRef = useRef(null);
 
+  /* CLICK OUTSIDE */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (accountRef.current && !accountRef.current.contains(e.target)) {
         setAccountOptions(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /* LOGIN */
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
     setLoginError(null);
@@ -64,6 +65,7 @@ export default function Navbar() {
     }
   };
 
+  /* REGISTER */
   const handleRegister = async (formData) => {
     try {
       await createUser({ ...formData, role: "worker" });
@@ -74,6 +76,7 @@ export default function Navbar() {
     }
   };
 
+  /* SEARCH */
   const handleSearch = (e) => {
     e.preventDefault();
     if (!search.trim()) return;
@@ -88,6 +91,7 @@ export default function Navbar() {
     }
   };
 
+  /* FORGOT PASSWORD */
   const handleForgotPasswordSubmit = async (email) => {
     setLoading(true);
     const res = await forgotPassword(email);
@@ -112,29 +116,36 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
         {/* BRAND */}
-        <NavLink to="/" className="text-xl font-bold text-blue-700">
-          Katel Capital
-        </NavLink>
+        <NavLink to="/" className="flex items-center gap-2">
+  <img
+    src="/images/katel_capital_logo1.png"
+    alt="Katel Capital"
+    className="h-20 w-auto rounded-full"
+  />
+  <span className="text-lg font-bold text-[#003F8E] hidden sm:block">
+    Katel Capital
+  </span>
+</NavLink>
 
-        {/* SEARCH (only when hero is NOT visible) */}
+        {/* SEARCH (only when hero NOT visible) */}
         {!isHeroVisible && (
           <form onSubmit={handleSearch} className="hidden md:flex w-[40%]">
             <input
               type="text"
-              placeholder="Search jobs or workers..."
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full border rounded-l px-3 py-2"
             />
-            <button className="bg-blue-600 text-white px-4 rounded-r">
+            <button className="bg-[#003F8E] text-white px-4 rounded-r">
               Search
             </button>
           </form>
         )}
 
-        {/* MOBILE MENU BUTTON (☰ / ✕ toggle) */}
+        {/* MOBILE MENU BUTTON */}
         <button
-          className="sm:hidden text-blue-700 text-2xl transition"
+          className="sm:hidden text-[#003F8E] text-2xl"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? "✕" : "☰"}
@@ -147,11 +158,10 @@ export default function Navbar() {
           } sm:flex absolute sm:static top-14 left-0 w-full sm:w-auto bg-white sm:space-x-6`}
         >
           {[
-            { to: "/jobs", label: "Find Work" },
-            { to: "/workers", label: "Hire Talent" },
-            { to: "/about", label: "About" },
-            { to: "/Why", label: "Why Katel" },
-            { to: "/pricing", label: "Pricing" },
+            { to: "/", label: "Home" },
+            { to: "/professionals", label: "Professionals" },
+            { to: "/companies", label: "Companies" },
+            { to: "/about", label: "About Katel" },
           ].map((link) => (
             <NavLink
               key={link.to}
@@ -160,8 +170,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `block px-4 py-2 font-medium border-b-2 ${
                   isActive
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-700 hover:border-blue-500"
+                    ? "border-[#F7C621] text-[#003F8E]"
+                    : "border-transparent text-gray-700 hover:border-[#F7C621]"
                 }`
               }
             >
@@ -169,32 +179,45 @@ export default function Navbar() {
             </NavLink>
           ))}
 
-          {/* ACCOUNT */}
-          <div className="relative px-4" ref={accountRef}>
+          {/* MOBILE BUTTONS */}
+          <div className="sm:hidden flex flex-col gap-3 px-4 py-4">
             <button
-              onClick={() => setAccountOptions(!accountOptions)}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={() => {
+                navigate("/companies");
+                setMenuOpen(false);
+              }}
+              className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg"
             >
-              Account
+              Start Hiring
             </button>
 
-            {accountOptions && (
-              <div className="absolute right-0 w-40 bg-white shadow rounded">
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setLoginOpen(true)}
-                >
-                  Login
-                </button>
-                <button
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setRegisterOpen(true)}
-                >
-                  Register
-                </button>
-              </div>
-            )}
+            <button
+              onClick={() => {
+                navigate("/professionals");
+                setMenuOpen(false);
+              }}
+              className="bg-[#003F8E] text-white px-4 py-2 rounded-lg"
+            >
+              Apply for a Job
+            </button>
           </div>
+        </div>
+
+        {/* DESKTOP BUTTONS */}
+        <div className="hidden md:flex items-center gap-3 ml-4">
+          <button
+            onClick={() => navigate("/companies")}
+            className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100"
+          >
+            Start Hiring
+          </button>
+
+          <button
+            onClick={() => navigate("/professionals")}
+            className="bg-[#003F8E] text-white px-4 py-2 rounded-lg hover:opacity-90"
+          >
+            Apply for a Job
+          </button>
         </div>
       </div>
 
@@ -208,11 +231,13 @@ export default function Navbar() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full border px-3 py-2"
           />
-          <button className="bg-blue-600 text-white px-4">Search</button>
+          <button className="bg-[#003F8E] text-white px-4">
+            Search
+          </button>
         </form>
       )}
 
-      {/* MODALS (unchanged) */}
+      {/* MODALS (kept but hidden from UI use) */}
       <Modal isOpen={loginOpen} onClose={() => setLoginOpen(false)}>
         {authForm === "login" ? (
           <LoginForm
