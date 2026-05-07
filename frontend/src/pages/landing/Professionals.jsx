@@ -124,13 +124,16 @@ export default function Professionals() {
         </p>
 
         <button
-          onClick={() =>
-            window.open("https://forms.gle/YOUR_GOOGLE_FORM_LINK", "_blank")
-          }
-          className="bg-[#F7C621] text-black px-6 py-3 rounded-lg font-semibold"
-        >
-          Apply Today
-        </button>
+  onClick={() =>
+    window.open(
+      "https://forms.gle/aLAvdJv3UQDVQL9R7",
+      "_blank"
+    )
+  }
+  className="bg-[#F7C621] text-black px-6 py-3 rounded-lg font-semibold"
+>
+  Apply Today
+</button>
       </section>
 
       <Footer/>

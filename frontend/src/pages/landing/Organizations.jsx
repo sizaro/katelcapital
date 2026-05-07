@@ -155,13 +155,16 @@ export default function Organizations() {
         </p>
 
         <button
-          onClick={() =>
-            window.open("https://forms.gle/YOUR_GOOGLE_FORM_LINK", "_blank")
-          }
-          className="bg-[#F7C621] text-black px-6 py-3 rounded-lg font-semibold"
-        >
-          Start Hiring Today
-        </button>
+  onClick={() =>
+    window.open(
+      "https://forms.gle/o7evZJqwgeCzShYp8",
+      "_blank"
+    )
+  }
+  className="bg-[#F7C621] text-black px-6 py-3 rounded-lg font-semibold"
+>
+  Start Hiring Today
+</button>
       </section>
       <Footer/>
     </div>
