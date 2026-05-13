@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Modal from "../Modal.jsx";
 import LoginForm from "../auth/login.jsx";
@@ -6,7 +6,6 @@ import UserForm from "../UserForm.jsx";
 import ForgotPasswordForm from "../auth/ForgotPasswordForm.jsx";
 import ToastModal from "../ToastModal.jsx";
 import { useData } from "../../context/DataContext.jsx";
-import useHeroVisible from "./useHeroVisible.jsx";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,7 +14,10 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState(null);
   const [authForm, setAuthForm] = useState("login");
-  const [toast, setToast] = useState({ message: "", type: "success" });
+  const [toast, setToast] = useState({
+    message: "",
+    type: "success",
+  });
 
   const navigate = useNavigate();
 
@@ -24,13 +26,16 @@ export default function Navbar() {
     createUser,
     checkAuth,
     forgotPassword,
-    searchJobs,
-    searchWorkers,
   } = useData();
 
+  /* ================= REGISTER ================= */
   const handleRegister = async (formData) => {
     try {
-      await createUser({ ...formData, role: "worker" });
+      await createUser({
+        ...formData,
+        role: "worker",
+      });
+
       setRegisterOpen(false);
       setLoginOpen(true);
     } catch {
@@ -38,9 +43,12 @@ export default function Navbar() {
     }
   };
 
+  /* ================= FORGOT PASSWORD ================= */
   const handleForgotPasswordSubmit = async (email) => {
     setLoading(true);
+
     const res = await forgotPassword(email);
+
     setLoading(false);
 
     setToast({
@@ -51,7 +59,11 @@ export default function Navbar() {
     });
 
     setTimeout(() => {
-      setToast({ message: "", type: "success" });
+      setToast({
+        message: "",
+        type: "success",
+      });
+
       setAuthForm("login");
       setLoginOpen(false);
     }, 4000);
@@ -59,142 +71,249 @@ export default function Navbar() {
 
   return (
     <>
+      {/* ================= NAVBAR ================= */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
-          {/* BRAND */}
-          <NavLink to="/" className="flex items-center gap-2">
+          {/* ================= LOGO ================= */}
+          <NavLink
+            to="/"
+            className="flex items-center gap-2"
+          >
             <img
               src="/images/katel_capital_logo1.png"
               alt="Katel Capital"
-              className="md:h-20 w-auto rounded-full h-12"
+              className="h-12 md:h-20 w-auto rounded-full"
             />
+
             <span className="text-sm md:text-lg font-bold text-[#003F8E]">
               Katel Capital
             </span>
           </NavLink>
-          <div className="flex flex-row px-6 gap-4 hidden lg:flex">
 
-          {[
-            { to: "/", label: "Home" },
-            { to: "/professionals", label: "Professionals" },
-            { to: "/organizations", label: "Organizations" },
-            { to: "/services", label: "Services" },
-            { to: "/pricing", label: "Pricing" },
-            { to: "/contact", label: "Contact" },
-            { to: "/about", label: "About Katel" },
-          ].map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              onClick={() => setMenuOpen(false)}
-              className={({ isActive }) =>
-                `py-2 border-b ${
-                  isActive
-                    ? "text-[#003F8E] border-[#F7C621]"
-                    : "text-gray-700 border-transparent"
-                }`
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
-        </div>
+          {/* ================= DESKTOP NAV LINKS ================= */}
+          <div className="hidden lg:flex items-center gap-8">
 
-          {/* MOBILE RIGHT SIDE ACTIONS */}
+            {[
+              {
+                to: "/professionals",
+                label: "Professionals",
+              },
+              {
+                to: "/organizations",
+                label: "Organizations",
+              },
+              {
+                to: "/pricing",
+                label: "Pricing",
+              },
+              {
+                to: "/about",
+                label: "About Katel",
+              },
+            ].map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `font-medium border-b-2 py-2 transition ${
+                    isActive
+                      ? "border-[#F7C621] text-[#003F8E]"
+                      : "border-transparent text-gray-700 hover:border-[#F7C621]"
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+
+          </div>
+
+          {/* ================= MOBILE RIGHT SECTION ================= */}
           <div className="flex items-center gap-2 lg:hidden">
 
+            {/* HIRE BUTTON */}
             <button
               onClick={() => navigate("/organizations")}
-              className="border border-[#003F8E] text-[#003F8E] px-3 py-1 rounded-lg text-sm md:text-md"
+              className="border border-[#003F8E] text-[#003F8E] px-3 py-1 rounded-lg text-sm"
             >
-              Start Hiring
+              Hire
             </button>
 
+            {/* FIND WORK BUTTON */}
             <button
               onClick={() => navigate("/professionals")}
-              className="bg-[#003F8E] text-white px-3 py-1 rounded-lg text-sm md:text-md"
+              className="bg-[#003F8E] text-white px-3 py-1 rounded-lg text-sm"
             >
-              Find Work
+              Work
             </button>
 
+            {/* HAMBURGER */}
             <button
-              className="text-[#003F8E] text-3xl"
               onClick={() => setMenuOpen(true)}
+              className="text-3xl text-[#003F8E]"
             >
               ☰
             </button>
+
           </div>
 
-          {/* DESKTOP BUTTONS */}
-          <div className="hidden lg:flex items-center gap-3 ml-4">
+          {/* ================= DESKTOP BUTTONS ================= */}
+          <div className="hidden lg:flex items-center gap-3">
+
             <button
               onClick={() => navigate("/organizations")}
-              className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100"
+              className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100 transition"
             >
               Start Hiring
             </button>
 
             <button
               onClick={() => navigate("/professionals")}
-              className="bg-[#003F8E] text-white px-4 py-2 rounded-lg hover:opacity-90"
+              className="bg-[#003F8E] text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
             >
               Find Work
             </button>
+
           </div>
+
         </div>
       </nav>
 
-      {/* ================= SLIDE OVER MENU ================= */}
+      {/* ================= MOBILE SLIDE MENU ================= */}
       <div
-        className={`fixed top-0 right-0 h-full w-[80%] bg-white shadow-2xl z-50 transform transition-transform duration-300
-        ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed inset-0 z-[100] lg:hidden transition-all duration-300 ${
+          menuOpen
+            ? "pointer-events-auto"
+            : "pointer-events-none"
+        }`}
       >
 
-        {/* CLOSE BUTTON */}
-        <div className="flex justify-end p-4">
-          <button
-            className="text-3xl text-[#003F8E]"
-            onClick={() => setMenuOpen(false)}
-          >
-            ✕
-          </button>
-        </div>
+        {/* BACKDROP */}
+        <div
+          onClick={() => setMenuOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            menuOpen
+              ? "opacity-100"
+              : "opacity-0"
+          }`}
+        />
 
-        {/* MENU LINKS */}
-        <div className="flex flex-col px-6 gap-4">
+        {/* SIDEBAR */}
+        <div
+          className={`absolute top-0 right-0 h-full w-[80%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ${
+            menuOpen
+              ? "translate-x-0"
+              : "translate-x-full"
+          }`}
+        >
 
-          {[
-            { to: "/", label: "Home" },
-            { to: "/professionals", label: "Professionals" },
-            { to: "/organizations", label: "Organizations" },
-            { to: "/services", label: "Services" },
-            { to: "/pricing", label: "Pricing" },
-            { to: "/contact", label: "Contact" },
-            { to: "/about", label: "About Katel" },
-          ].map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
+          {/* CLOSE */}
+          <div className="flex justify-between items-center p-5 border-b">
+
+            <span className="font-bold text-[#003F8E] text-lg">
+              Menu
+            </span>
+
+            <button
               onClick={() => setMenuOpen(false)}
-              className={({ isActive }) =>
-                `py-2 border-b ${
-                  isActive
-                    ? "text-[#003F8E] border-[#F7C621]"
-                    : "text-gray-700 border-transparent"
-                }`
-              }
+              className="text-3xl text-[#003F8E]"
             >
-              {link.label}
-            </NavLink>
-          ))}
+              ✕
+            </button>
+
+          </div>
+
+          {/* LINKS */}
+          <div className="flex flex-col p-6">
+
+            {[
+              {
+                to: "/professionals",
+                label: "Professionals",
+              },
+              {
+                to: "/organizations",
+                label: "Organizations",
+              },
+              {
+                to: "/pricing",
+                label: "Pricing",
+              },
+              {
+                to: "/about",
+                label: "About Katel",
+              },
+            ].map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `py-4 border-b text-lg transition ${
+                    isActive
+                      ? "text-[#003F8E] border-[#F7C621]"
+                      : "text-gray-700 border-gray-200"
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+
+          </div>
+
         </div>
       </div>
 
-      {/* MODALS (UNCHANGED) */}
-      <Modal isOpen={false}>
-        <div />
+      {/* ================= MODALS ================= */}
+
+      <Modal
+        isOpen={loginOpen}
+        onClose={() => setLoginOpen(false)}
+      >
+        {authForm === "login" ? (
+          <LoginForm
+            onSubmit={loginUser}
+            loading={loading}
+            error={loginError}
+            onForgotPassword={() =>
+              setAuthForm("forgot")
+            }
+          />
+        ) : (
+          <ForgotPasswordForm
+            onSubmit={handleForgotPasswordSubmit}
+            onCancel={() =>
+              setAuthForm("login")
+            }
+            loading={loading}
+          />
+        )}
       </Modal>
+
+      <Modal
+        isOpen={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+      >
+        <UserForm
+          role="worker"
+          onSubmit={handleRegister}
+        />
+      </Modal>
+
+      {toast.message && (
+        <ToastModal
+          message={toast.message}
+          type={toast.type}
+          onClose={() =>
+            setToast({
+              message: "",
+              type: toast.type,
+            })
+          }
+        />
+      )}
     </>
   );
 }
