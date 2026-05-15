@@ -20,6 +20,11 @@ export default function Footer() {
             Connecting organizations with reliable professionals and
             creating meaningful career opportunities across Africa.
           </p>
+
+          {/* NEW TAGLINE */}
+          <p className="mt-5 text-sm font-medium text-[#F7C621] leading-relaxed">
+            Skilled professionals. Faster hiring. Stronger teams.
+          </p>
         </div>
 
         {/* FOR PROFESSIONALS */}
@@ -29,21 +34,34 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-2 text-sm text-gray-200">
+
             <li>
-              <button onClick={() => navigate("/professionals")} className="hover:text-white">
+              <button
+                onClick={() => navigate("/professionals")}
+                className="hover:text-white"
+              >
                 Find Work
               </button>
             </li>
+
             <li>
-              <button onClick={() => navigate("/services")} className="hover:text-white">
-                Services
+              <button
+                onClick={() => navigate("/pricing")}
+                className="hover:text-white"
+              >
+                Pricing
               </button>
             </li>
+
             <li>
-              <button onClick={() => navigate("/contact")} className="hover:text-white">
-                Join Network
+              <button
+                onClick={() => navigate("/about")}
+                className="hover:text-white"
+              >
+                About Katel
               </button>
             </li>
+
           </ul>
         </div>
 
@@ -54,21 +72,34 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-2 text-sm text-gray-200">
+
             <li>
-              <button onClick={() => navigate("/organizations")} className="hover:text-white">
+              <button
+                onClick={() => navigate("/organizations")}
+                className="hover:text-white"
+              >
                 Start Hiring
               </button>
             </li>
+
             <li>
-              <button onClick={() => navigate("/services")} className="hover:text-white">
-                Workforce Solutions
+              <button
+                onClick={() => navigate("/pricing")}
+                className="hover:text-white"
+              >
+                Workforce Pricing
               </button>
             </li>
+
             <li>
-              <button onClick={() => navigate("/pricing")} className="hover:text-white">
-                Pricing
+              <button
+                onClick={() => navigate("/about")}
+                className="hover:text-white"
+              >
+                Why Katel
               </button>
             </li>
+
           </ul>
         </div>
 
@@ -84,10 +115,29 @@ export default function Footer() {
             <li>Kampala, Uganda</li>
           </ul>
 
-          <div className="flex gap-4 mt-4 text-sm">
-            <a href="#" className="hover:text-[#F7C621]">Facebook</a>
-            <a href="#" className="hover:text-[#F7C621]">LinkedIn</a>
-            <a href="#" className="hover:text-[#F7C621]">WhatsApp</a>
+          <div className="flex gap-4 mt-4 text-sm flex-wrap">
+
+            <a
+              href="#"
+              className="hover:text-[#F7C621]"
+            >
+              Facebook
+            </a>
+
+            <a
+              href="#"
+              className="hover:text-[#F7C621]"
+            >
+              LinkedIn
+            </a>
+
+            <a
+              href="#"
+              className="hover:text-[#F7C621]"
+            >
+              WhatsApp
+            </a>
+
           </div>
         </div>
       </div>
@@ -97,19 +147,19 @@ export default function Footer() {
 
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm text-gray-300">
 
-          {/* LEFT */}
-          <p>
+          {/* COPYRIGHT */}
+          <p className="text-center md:text-left">
             © {new Date().getFullYear()} Katel Capital. All rights reserved.
           </p>
 
-          {/* CENTER / RIGHT LINKS */}
-          <div className="flex gap-6 mt-2 md:mt-0">
+          {/* FOOTER LINKS */}
+          <div className="flex gap-6 mt-3 md:mt-0">
 
-            <button className="hover:text-[#F7C621]">
+            <button className="hover:text-[#F7C621] transition">
               Privacy Policy
             </button>
 
-            <button className="hover:text-[#F7C621]">
+            <button className="hover:text-[#F7C621] transition">
               Terms
             </button>
 
@@ -117,8 +167,10 @@ export default function Footer() {
         </div>
 
         {/* SIZAFORGETECH CREDIT */}
-        <div className="text-center pb-4 text-xs text-gray-300">
+        <div className="text-center pb-5 text-xs text-gray-300 px-4">
+
           Built & maintained by{" "}
+
           <a
             href="https://sizaforgetech.com"
             target="_blank"
@@ -127,6 +179,7 @@ export default function Footer() {
           >
             SizaForgeTech
           </a>
+
         </div>
 
       </div>
