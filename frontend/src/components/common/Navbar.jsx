@@ -72,8 +72,8 @@ export default function Navbar() {
   return (
     <>
       {/* ================= NAVBAR ================= */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <nav className="sticky top-0 z-50 bg-white backdrop-blur-sm border-b border-white/10 shadow-md">
+  <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
           {/* ================= LOGO ================= */}
           <NavLink
@@ -83,7 +83,7 @@ export default function Navbar() {
             <img
               src="/images/katel_capital_logo1.png"
               alt="Katel Capital"
-              className="h-12 md:h-20 w-auto rounded-full"
+              className="h-12 md:h-15 w-auto rounded-full"
             />
 
             <span className="text-sm md:text-lg font-bold text-[#003F8E]">
@@ -115,11 +115,11 @@ export default function Navbar() {
               <NavLink
                 key={link.to}
                 to={link.to}
-                className={({ isActive }) =>
+                className=  {({ isActive }) =>
                   `font-medium border-b-2 py-2 transition ${
                     isActive
                       ? "border-[#F7C621] text-[#003F8E]"
-                      : "border-transparent text-gray-700 hover:border-[#F7C621]"
+                      : "border-transparent hover:border-[#F7C621] text-[#003F8E]"
                   }`
                 }
               >
