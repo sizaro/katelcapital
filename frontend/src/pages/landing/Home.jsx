@@ -38,7 +38,6 @@ export default function Home() {
 
 
 
-
 const Hero = () => {
   const [activeTab, setActiveTab] = useState("organizations");
   const [currentImage, setCurrentImage] = useState(0);
@@ -55,8 +54,10 @@ const Hero = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -66,6 +67,7 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+
   const heroImages = [
     "/images/katel_hero1.jpg",
     "/images/katel_capital_hero2.jpg",
@@ -74,6 +76,7 @@ const Hero = () => {
     "/images/katel_capital_hero6.jpg",
     "/images/katel_capital_hero7.webp",
   ];
+
 
   const tabContent = {
     organizations: {
@@ -91,47 +94,164 @@ const Hero = () => {
     },
   };
 
+
   return (
-    <header className="-mt-2 hero h-[80vh]">
+    <header className="-mt-14 md:-mt-2 hero min-h-[90vh] lg:h-[80vh] flex flex-col justify-center items-center">
+
 
       {/* BACKGROUND */}
       <div className="hero-gradient" />
       <div className="hero-radial" />
 
+
       {/* BLOBS */}
       <div className="blob blob-1" />
       <div className="blob blob-2" />
 
+
       <div className="hero-container">
-        <div className="hero-grid">
 
-          {/* LEFT SIDE */}
-          <div>
+        <div className="
+          hero-grid
+          grid
+          grid-cols-1
+          lg:grid-cols-2
+          gap-10
+          items-center
+        ">
 
-            <h1 className="reveal delay-100 text-white text-[50px]">
+
+          {/* ================= LEFT CONTENT ================= */}
+          <div className="flex flex-col">
+
+
+            {/* HEADING FIRST MOBILE */}
+            <h1
+              className="
+              reveal delay-100
+              text-white
+              text-[30px]
+              text-center
+              md:text-left
+              md:text-[40px]
+              lg:text-[50px]
+              order-1
+              lg:order-1
+              "
+            >
               Unlock Talent.
               <br />
               Build Smarter Teams
             </h1>
 
-            <p className="reveal delay-200 text-white text-md">
+
+
+            {/* IMAGE MOVED HERE ONLY MOBILE */}
+            <div
+              className="
+              flex
+              justify-center
+              items-center
+              reveal
+              delay-200
+              order-2
+              lg:hidden
+              md:absolute
+              right-4
+              top-0
+              mt-8
+              "
+            >
+
+              <div
+                className="
+                relative
+                w-[300px]
+                h-[300px]
+                md:w-[320px]
+                md:h-[320px]
+                rounded-full
+                overflow-hidden
+                border-4
+                border-white/20
+                shadow-2xl
+                "
+              >
+
+                <img
+                  key={currentImage}
+                  src={heroImages[currentImage]}
+                  alt="Katel Capital"
+                  className="
+                  w-full
+                  h-full
+                  object-cover
+                  transition-all
+                  duration-1000
+                  "
+                />
+
+              </div>
+
+            </div>
+
+
+
+            {/* DESCRIPTION */}
+            <p
+              className="
+              reveal delay-300
+              text-white
+              text-md
+              mt-8
+              order-3
+              lg:order-2
+              md:w-[400px]
+              lg:w-auto
+              "
+            >
               Helping organizations hire faster, reduce costs, and build
               reliable remote teams while creating life-changing opportunities
               across Uganda.
             </p>
 
-            {/* ================= BUTTON GROUP (FIXED STYLE) ================= */}
-            <div className="flex items-center justify-right gap-0 mt-6 reveal w-auto delay-300 bg-transparent
-                  bg-white/10
-                  text-white py-0
-                  rounded-full">
+
+
+
+            {/* BUTTON GROUP - SAME STYLING */}
+            <div
+              className="
+              min-w-[350px]
+              max-w-[360px]
+              md:min-w-[400px]
+              md:max-w-[500px]
+              lg:min-w-[400px]
+              lg:max-w-[600px]
+              flex
+              items-center
+              justify-start
+              gap-0
+              mt-6
+              reveal
+              delay-400
+              order-4
+              lg:order-3
+              bg-transparent
+              bg-white/10
+              text-white
+              py-0
+              rounded-full
+              "
+            >
+
 
               <button
                 onClick={() => setActiveTab("organizations")}
                 className="
                   border border-white
                   text-white
-                  px-25 py-2
+                  md:px-25 md:py-2
+                  px-12 py-1
                   rounded-full
                   bg-transparent
                   transition
@@ -142,32 +262,58 @@ const Hero = () => {
                 Hire Talent
               </button>
 
+
+
               <button
                 onClick={() => setActiveTab("professionals")}
                 className="
                   text-white
                   text-left
-                  ml-25
+                  lg:ml-25
+                  md:ml-20
+                  ml-10
                 "
               >
                 Find Work
               </button>
 
+
             </div>
 
-            {/* ================= DYNAMIC CONTENT ================= */}
-            <div className="mt-8 max-w-lg reveal delay-400">
 
-              <p className="text-white/80 text-lg leading-relaxed mb-5">
+
+
+
+            {/* DYNAMIC CONTENT */}
+            <div
+              className="
+              mt-8
+              max-w-lg
+              reveal
+              delay-500
+              order-5
+              lg:order-4
+              "
+            >
+
+              <p className="
+                text-white/80
+                text-lg
+                leading-relaxed
+                mb-5
+              ">
                 {tabContent[activeTab].text}
               </p>
+
+
 
               <button
                 onClick={tabContent[activeTab].action}
                 className="
                   bg-[#F7C621]
                   text-black
-                  px-10 py-2
+                  px-10
+                  py-2
                   rounded-full
                   font-semibold
                   hover:opacity-90
@@ -177,33 +323,72 @@ const Hero = () => {
                 {tabContent[activeTab].button}
               </button>
 
+
             </div>
+
 
           </div>
 
-          {/* RIGHT SIDE IMAGE */}
-          <div className="flex justify-center items-center reveal delay-500 -mt-15">
 
-            <div className="relative w-[320px] h-[320px] md:w-[500px] md:h-[500px] rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
+
+
+
+
+          {/* ================= DESKTOP IMAGE ONLY ================= */}
+          <div
+            className="
+            hidden
+            lg:flex
+            justify-center
+            items-center
+            reveal
+            delay-500
+            -mt-15
+            "
+          >
+
+            <div
+              className="
+              relative
+              w-[320px]
+              h-[320px]
+              md:w-[500px]
+              md:h-[500px]
+              rounded-full
+              overflow-hidden
+              border-4
+              border-white/20
+              shadow-2xl
+              "
+            >
 
               <img
                 key={currentImage}
                 src={heroImages[currentImage]}
                 alt="Katel Capital"
-                className="w-full h-full object-cover transition-all duration-1000"
+                className="
+                w-full
+                h-full
+                object-cover
+                transition-all
+                duration-1000
+                "
               />
 
             </div>
 
           </div>
 
+
+
         </div>
+
       </div>
+
+
     </header>
   );
 };
-
-
 
 
 
