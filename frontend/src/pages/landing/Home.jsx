@@ -130,7 +130,7 @@ const Hero = () => {
               className="
               reveal delay-100
               text-white
-              text-[30px]
+              text-[20px]
               text-center
               md:text-left
               md:text-[40px]
@@ -157,17 +157,22 @@ const Hero = () => {
               order-2
               lg:hidden
               md:absolute
-              right-4
+              md:right-4
               top-0
-              mt-8
+              md:mt-8
+              mt-5
+              inset=0
+              right-3
               "
             >
 
               <div
                 className="
                 relative
-                w-[300px]
-                h-[300px]
+                min-w-[150px]
+                min-h-[150px]
+                max-w-[300]
+                max-h-[300]
                 md:w-[320px]
                 md:h-[320px]
                 rounded-full
@@ -221,11 +226,11 @@ const Hero = () => {
             {/* BUTTON GROUP - SAME STYLING */}
             <div
               className="
-              min-w-[350px]
-              max-w-[360px]
-              md:min-w-[400px]
+              min-w-10
+              max-w-[250px]
+              md:min-w-[100px]
               md:max-w-[500px]
-              lg:min-w-[400px]
+              lg:min-w-[500px]
               lg:max-w-[600px]
               flex
               items-center
@@ -250,8 +255,16 @@ const Hero = () => {
                 className="
                   border border-white
                   text-white
-                  md:px-25 md:py-2
-                  px-12 py-1
+                  min-w-[100px]
+                  max-w-[400px]
+                  max-h-[200px]
+                  md:min-w-[250px]
+                  md:max-w-[350px]
+                  lg:min-w-auto
+                  lg:max-w-[500px]
+                  md:px-20 md:py-2
+                  lg:px-25
+                  px-5 py-1
                   rounded-full
                   bg-transparent
                   transition
@@ -271,7 +284,7 @@ const Hero = () => {
                   text-left
                   lg:ml-25
                   md:ml-20
-                  ml-10
+                  ml-6
                 "
               >
                 Find Work
@@ -312,12 +325,13 @@ const Hero = () => {
                 className="
                   bg-[#F7C621]
                   text-black
-                  px-10
-                  py-2
+                  px-6
+                  py-1
                   rounded-full
                   font-semibold
                   hover:opacity-90
                   transition
+                  -mb-10
                 "
               >
                 {tabContent[activeTab].button}
