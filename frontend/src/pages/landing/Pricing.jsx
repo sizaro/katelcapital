@@ -99,7 +99,7 @@ export default function Pricing() {
 
             <div className="mt-10">
               <h3 className="text-2xl font-bold text-[#003F8E] mb-6">
-                What’s in for you?
+                What’s in it for you?
               </h3>
 
               <div className="space-y-6">
@@ -160,7 +160,7 @@ export default function Pricing() {
                     Flexible Growth
                   </h4>
                   <p className="text-gray-600">
-                    Scale from 1 professional to 50+ as your business grows.
+                    Scale from 1 professional to 50+ professionals as your business grows.
                   </p>
                 </div>
 
