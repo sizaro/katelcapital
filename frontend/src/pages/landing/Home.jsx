@@ -251,44 +251,64 @@ const Hero = () => {
 
 
               <button
-                onClick={() => setActiveTab("organizations")}
-                className="
-                  border border-white
-                  text-white
-                  min-w-[100px]
-                  max-w-[400px]
-                  max-h-[200px]
-                  md:min-w-[250px]
-                  md:max-w-[350px]
-                  lg:min-w-auto
-                  lg:max-w-[500px]
-                  md:px-20 md:py-2
-                  lg:px-25
-                  px-5 py-1
-                  rounded-full
-                  bg-transparent
-                  transition
-                  bg-white/5
-                  z-20
-                "
-              >
-                Hire Talent
-              </button>
+  onClick={() => setActiveTab("organizations")}
+  className={`
+    text-white
+    transition
+    rounded-full
+    ${
+      activeTab === "organizations"
+        ? `
+          border border-white
+          bg-white/5
+          z-20
+          md:px-20 md:py-2
+          lg:px-25
+          px-5 py-1
+        `
+        : `
+          text-left
+          lg:ml-25
+          md:ml-20
+          ml-6
+        `
+    }
+  `}
+>
+  Hire Talent
+</button>
 
 
-
-              <button
-                onClick={() => setActiveTab("professionals")}
-                className="
-                  text-white
-                  text-left
-                  lg:ml-25
-                  md:ml-20
-                  ml-6
-                "
-              >
-                Find Work
-              </button>
+<button
+  onClick={() => setActiveTab("professionals")}
+  className={`
+    text-white
+    transition
+    rounded-full
+    ${
+      activeTab === "professionals"
+        ? `
+          border border-white
+          bg-white/5
+          z-20
+          md:px-24 md:py-2
+          lg:px-26
+          px-6 py-1
+          lg:ml-21
+          md:ml-19
+          ml-6
+        `
+        : `
+          text-right
+          lg:ml-25
+          md:ml-20
+          ml-6
+        `
+    }
+  `}
+>
+  Find Work
+</button>
 
 
             </div>
