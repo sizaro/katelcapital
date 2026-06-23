@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -10,17 +11,13 @@ export default function Home() {
       <Navbar/>
       <Hero />
 
-      <HiringChallenges />
+      <HowKatelWorks />
 
       <WhyKatel />
 
       <Industries />
 
       <TalentSolutions />
-
-      <HowItWorksOrg />
-
-      <HowItWorksPro />
 
       <LiveStats />
 
@@ -30,6 +27,7 @@ export default function Home() {
 
       <Testimonials />
 
+      <FAQ />
       <CTA />
       <Footer/>
     </div>
@@ -424,75 +422,426 @@ const Hero = () => {
   );
 };
 
+const HowKatelWorks = () => {
+
+  const [activeTab, setActiveTab] = useState("organizations");
+  const navigate = useNavigate();
 
 
-const HiringChallenges = () => {
+  const orgSteps = [
+    "Share Your Hiring Needs",
+    "Talent Matching",
+    "Candidate Interviews",
+    "Fast Onboarding",
+    "Ongoing Support",
+  ];
+
+
+  const proSteps = [
+    "Apply",
+    "Screening & Assessment",
+    "Interview Preparation",
+    "Client Matching",
+    "Start Working & Grow",
+  ];
+
+
+  const steps =
+    activeTab === "organizations"
+      ? orgSteps
+      : proSteps;
+
+
+
   return (
-    <section className="py-20 px-6 bg-[var(--color-background)]">
 
-      <div className="max-w-7xl mx-auto">
+    <>
 
-        <div className="text-center mb-14">
+      {/* ================= INTRO ================= */}
 
-          <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-primary)] mb-4">
-            The Hiring Challenges Organizations Face
-          </h2>
+      <section className="
+        bg-gradient-to-br
+    from-blue-400
+    via-[#003F8E]
+    to-blue-500
+        text-white
+        py-24
+        px-6
+        text-center
+      ">
 
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            As organizations grow, hiring and workforce management become
-            more complex. Katel helps businesses overcome these challenges
-            with reliable remote workforce solutions.
+        <div className="max-w-5xl mx-auto">
+
+
+          <h1 className="
+            text-4xl
+            md:text-5xl
+            font-bold
+            mb-6
+          ">
+
+            Build Strong Teams.
+            <br/>
+            Create Better Career Opportunities.
+
+          </h1>
+
+
+          <p className="
+  text-xl
+  text-gray-200
+  max-w-3xl
+  mx-auto
+  leading-relaxed
+">
+
+  Katel helps organizations build reliable teams with skilled remote
+  professionals while helping talented people access better career
+  opportunities and flexible work.
+
+</p>
+
+
+          <p className="
+            mt-6
+            text-lg
+            text-gray-200
+          ">
+
+            Flexible workforce solutions.
+            Real talent.
+            Long-term growth.
+
           </p>
 
+
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+      </section>
 
-          {[
-            {
-              title: "Rising Hiring & Staffing Costs",
-              text: "Reduce overhead expenses through flexible remote workforce solutions.",
-            },
-            {
-              title: "Difficulty Finding Qualified Talent",
-              text: "Access carefully screened professionals ready for remote work.",
-            },
-            {
-              title: "Slow Recruitment Processes",
-              text: "Interview qualified candidates within days instead of months.",
-            },
-            {
-              title: "High Employee Turnover",
-              text: "Improve long-term retention through better role matching and support.",
-            },
-            {
-              title: "Internal HR Burden",
-              text: "Katel handles sourcing, screening, and workforce coordination.",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white p-6 rounded-xl shadow-sm border"
+
+
+
+      {/* ================= SWITCH BUTTONS ================= */}
+
+
+      <section className="py-10 bg-gray flex flex-col items-center">
+
+
+        <div className="
+          max-w-3xl
+          mx-auto
+          flex
+          flex-col
+          justify-center
+          gap-4
+          px-6
+        ">
+          <div className="flex flex-col items-center mb-6">
+
+  <div
+    className="
+      relative
+      bg-[#003F8E]
+      text-white
+      px-8
+      py-3
+      rounded-xl
+      font-bold
+      shadow-lg
+    "
+  >
+
+    How Katel Works
+
+
+    <div
+      className="
+        absolute
+        left-1/2
+        -bottom-3
+        -translate-x-1/2
+        w-0
+        h-0
+        border-l-[12px]
+        border-l-transparent
+        border-r-[12px]
+        border-r-transparent
+        border-t-[12px]
+        border-t-[#003F8E]
+      "
+    />
+
+  </div>
+
+</div>   
+
+         <div className="flex gap-10">
+           <button
+            onClick={() => setActiveTab("organizations")}
+
+            className={`
+              px-8
+              py-3
+              rounded-full
+              font-semibold
+              transition
+
+              ${
+                activeTab === "organizations"
+                ?
+                "bg-[#003F8E] text-white shadow-lg"
+                :
+                "border border-[#003F8E] text-[#003F8E]"
+              }
+            `}
+          >
+            Organizations
+          </button>
+
+
+
+          <button
+            onClick={() => setActiveTab("professionals")}
+
+            className={`
+              px-8
+              py-3
+              rounded-full
+              font-semibold
+              transition
+
+              ${
+                activeTab === "professionals"
+                ?
+                "bg-[#003F8E] text-white shadow-lg"
+                :
+                "border border-[#003F8E] text-[#003F8E]"
+              }
+            `}
+          >
+            Professionals
+          </button>
+         </div>
+
+
+        </div>
+
+
+      </section>
+
+
+
+
+
+      {/* ================= HOW IT WORKS ================= */}
+
+
+      <section
+        className={`
+          py-20
+          px-6
+
+          ${
+            activeTab === "organizations"
+            ?
+            "bg-[#003F8E] text-white"
+            :
+            "bg-[#F7F7F7]"
+          }
+
+        `}
+      >
+
+
+        <div className="max-w-7xl mx-auto">
+
+
+          <div className="text-center mb-16">
+
+
+            <h2 className={`
+              text-3xl
+              md:text-4xl
+              font-bold
+              mb-4
+
+              ${
+                activeTab === "organizations"
+                ?
+                "text-white"
+                :
+                "text-[#003F8E]"
+              }
+            `}>
+
+
+            </h2>
+
+
+            <p className={`
+              ${
+                activeTab === "organizations"
+                ?
+                "text-gray-200"
+                :
+                "text-gray-600"
+              }
+            `}>
+
+
+              {activeTab === "organizations"
+              ?
+              "Simple hiring. Qualified talent. Long-term support."
+              :
+              "Build your career. Work remotely. Grow with confidence."
+              }
+
+
+            </p>
+
+
+          </div>
+
+
+
+
+
+          <div className="
+            grid
+            md:grid-cols-5
+            gap-6
+          ">
+
+
+            {steps.map((step,i)=>(
+
+              <div
+                key={i}
+                className={`
+                  rounded-xl
+                  p-6
+                  text-center
+                  transition
+                  
+                  ${
+                    activeTab === "organizations"
+                    ?
+                    "bg-white/10 border border-white/20"
+                    :
+                    "bg-white border shadow-sm"
+                  }
+
+                `}
+              >
+
+
+                <div className={`
+                  w-12
+                  h-12
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  mx-auto
+                  mb-4
+                  font-bold
+
+                  ${
+                    activeTab === "organizations"
+                    ?
+                    "bg-[#F7C621] text-black"
+                    :
+                    "bg-[#003F8E] text-white"
+                  }
+                `}>
+
+                  {i+1}
+
+                </div>
+
+
+                <h3 className={`
+                  font-bold
+
+                  ${
+                    activeTab === "organizations"
+                    ?
+                    "text-white"
+                    :
+                    "text-[#003F8E]"
+                  }
+
+                `}>
+
+                  {step}
+
+                </h3>
+
+
+              </div>
+
+            ))}
+
+
+          </div>
+
+
+
+          {/* ================= CTA ================= */}
+
+
+          <div className="text-center mt-14">
+
+
+            <button
+
+              onClick={() =>
+                navigate(
+                  activeTab === "organizations"
+                  ? "/organizations"
+                  : "/professionals"
+                )
+              }
+
+              className="
+                bg-[#F7C621]
+                text-black
+                px-10
+                py-3
+                rounded-full
+                font-bold
+                hover:opacity-90
+                transition
+              "
+
             >
 
-              <h3 className="text-xl font-bold text-[var(--color-primary)] mb-3">
-                {item.title}
-              </h3>
+              {activeTab === "organizations"
+              ?
+              "Start Hiring With Katel"
+              :
+              "Join Katel Talent Network"
+              }
 
-              <p className="text-gray-600 leading-relaxed">
-                {item.text}
-              </p>
 
-            </div>
-          ))}
+            </button>
+
+
+          </div>
+
+
 
         </div>
 
-      </div>
-    </section>
-  );
-};
 
+      </section>
+
+
+    </>
+
+  );
+}
 
 const WhyKatel = () => {
   return (
@@ -704,108 +1053,6 @@ const TalentSolutions = () => {
 
               <h3 className="font-bold text-[var(--color-primary)] text-lg">
                 {item}
-              </h3>
-
-            </div>
-          ))}
-
-        </div>
-
-      </div>
-    </section>
-  );
-};
-
-
-const HowItWorksOrg = () => {
-  return (
-    <section className="bg-[var(--color-primary)] py-20 px-6 text-white">
-
-      <div className="max-w-7xl mx-auto">
-
-        <div className="text-center mb-16">
-
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            How Katel Works for Organizations
-          </h2>
-
-          <p className="text-gray-200">
-            Simple hiring. Qualified talent. Long-term support.
-          </p>
-
-        </div>
-
-        <div className="grid md:grid-cols-5 gap-6">
-
-          {[
-            "Share Your Hiring Needs",
-            "Talent Matching",
-            "Candidate Interviews",
-            "Fast Onboarding",
-            "Ongoing Support",
-          ].map((step, i) => (
-            <div
-              key={i}
-              className="bg-white/10 border border-white/20 rounded-xl p-6 text-center"
-            >
-
-              <div className="w-12 h-12 rounded-full bg-[var(--color-accent)] text-black font-bold flex items-center justify-center mx-auto mb-4">
-                {i + 1}
-              </div>
-
-              <h3 className="font-bold">
-                {step}
-              </h3>
-
-            </div>
-          ))}
-
-        </div>
-
-      </div>
-    </section>
-  );
-};
-
-
-const HowItWorksPro = () => {
-  return (
-    <section className="py-20 px-6 bg-[var(--color-background)]">
-
-      <div className="max-w-7xl mx-auto">
-
-        <div className="text-center mb-16">
-
-          <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-primary)] mb-4">
-            How Katel Works for Professionals
-          </h2>
-
-          <p className="text-gray-600">
-            Build your career. Work remotely. Grow with confidence.
-          </p>
-
-        </div>
-
-        <div className="grid md:grid-cols-5 gap-6">
-
-          {[
-            "Apply",
-            "Screening & Assessment",
-            "Interview Preparation",
-            "Client Matching",
-            "Start Working & Grow",
-          ].map((step, i) => (
-            <div
-              key={i}
-              className="bg-white border rounded-xl p-6 shadow-sm text-center"
-            >
-
-              <div className="w-12 h-12 rounded-full bg-[var(--color-primary)] text-white font-bold flex items-center justify-center mx-auto mb-4">
-                {i + 1}
-              </div>
-
-              <h3 className="font-bold text-[var(--color-primary)]">
-                {step}
               </h3>
 
             </div>
@@ -1076,6 +1323,110 @@ const Testimonials = () => {
             </div>
 
           </div>
+
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
+
+const FAQ = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const faqs = [
+    {
+      q: "How does Katel pricing work?",
+      a: "Katel charges organizations a simple hourly rate based on the role, experience level, and engagement structure.",
+    },
+    {
+      q: "What’s included in the $10/hour rate?",
+      a: "This includes talent sourcing, screening, contractor onboarding, workforce support, and ongoing client coordination.",
+    },
+    {
+      q: "Are there any setup fees?",
+      a: "No. Katel operates with transparent pricing and no hidden onboarding costs.",
+    },
+    {
+      q: "Are there long-term contracts?",
+      a: "We offer flexible engagement options depending on your hiring needs.",
+    },
+    {
+      q: "How fast can we start hiring?",
+      a: "Most clients begin interviewing qualified candidates within 2–5 business days.",
+    },
+    {
+      q: "Can Katel support scaling teams?",
+      a: "Yes. Whether you need one professional or a larger remote team, Katel is built to scale with your organization.",
+    },
+  ];
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <section className="py-20 px-6 bg-[#F7F7F7]">
+      <div className="max-w-5xl mx-auto">
+
+        {/* TITLE */}
+        <div className="text-center mb-14">
+          <h2 className="text-4xl font-bold text-[#003F8E] mb-4">
+            Frequently Asked Questions
+          </h2>
+        </div>
+
+        {/* FAQ ITEMS */}
+        <div className="space-y-4">
+
+          {faqs.map((item, index) => (
+            <div
+              key={index}
+              className="
+                bg-white
+                rounded-xl
+                shadow-sm
+                overflow-hidden
+                transition
+              "
+            >
+
+              {/* QUESTION (CLICKABLE) */}
+              <button
+                onClick={() => toggleFAQ(index)}
+                className="
+                  w-full
+                  text-left
+                  px-6
+                  py-5
+                  flex
+                  justify-between
+                  items-center
+                  font-bold
+                  text-[#003F8E]
+                  hover:bg-gray-50
+                  transition
+                "
+              >
+
+                {item.q}
+
+                <span className="text-xl">
+                  {openIndex === index ? "−" : "+"}
+                </span>
+
+              </button>
+
+              {/* ANSWER (TOGGLE) */}
+              {openIndex === index && (
+                <div className="px-6 pb-6 text-gray-600 leading-7">
+                  {item.a}
+                </div>
+              )}
+
+            </div>
+          ))}
 
         </div>
 

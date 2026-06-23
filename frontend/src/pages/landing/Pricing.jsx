@@ -1,8 +1,43 @@
 import React from "react";
+import { useState } from "react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
 export default function Pricing() {
+
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const faqs = [
+    {
+      q: "How does Katel pricing work?",
+      a: "Katel charges organizations a simple hourly rate based on the role, experience level, and engagement structure.",
+    },
+    {
+      q: "What’s included in the $10/hour rate?",
+      a: "This includes talent sourcing, screening, contractor onboarding, workforce support, and ongoing client coordination.",
+    },
+    {
+      q: "Are there any setup fees?",
+      a: "No. Katel operates with transparent pricing and no hidden onboarding costs.",
+    },
+    {
+      q: "Are there long-term contracts?",
+      a: "We offer flexible engagement options depending on your hiring needs.",
+    },
+    {
+      q: "How fast can we start hiring?",
+      a: "Most clients begin interviewing qualified candidates within 2–5 business days.",
+    },
+    {
+      q: "Can Katel support scaling teams?",
+      a: "Yes. Whether you need one professional or a larger remote team, Katel is built to scale with your organization.",
+    },
+  ];
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
   return (
     <div className="bg-[#F7F7F7] min-h-screen">
       <Navbar />
@@ -311,61 +346,71 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* ================= FAQ ================= */}
-      <section className="py-20 px-6 bg-[#F7F7F7]">
-        <div className="max-w-5xl mx-auto">
+    <section className="py-20 px-6 bg-[#F7F7F7]">
+      <div className="max-w-5xl mx-auto">
 
-          <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold text-[#003F8E] mb-4">
-              Frequently Asked Questions
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-
-            {[
-              {
-                q: "How does Katel pricing work?",
-                a: "Katel charges organizations a simple hourly rate based on the role, experience level, and engagement structure.",
-              },
-              {
-                q: "What’s included in the $10/hour rate?",
-                a: "This includes talent sourcing, screening, contractor onboarding, workforce support, and ongoing client coordination.",
-              },
-              {
-                q: "Are there any setup fees?",
-                a: "No. Katel operates with transparent pricing and no hidden onboarding costs.",
-              },
-              {
-                q: "Are there long-term contracts?",
-                a: "We offer flexible engagement options depending on your hiring needs.",
-              },
-              {
-                q: "How fast can we start hiring?",
-                a: "Most clients begin interviewing qualified candidates within 2–5 business days.",
-              },
-              {
-                q: "Can Katel support scaling teams?",
-                a: "Yes. Whether you need one professional or a larger remote team, Katel is built to scale with your organization.",
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl p-6 shadow-sm"
-              >
-                <h3 className="font-bold text-lg text-[#003F8E] mb-3">
-                  {item.q}
-                </h3>
-
-                <p className="text-gray-600 leading-7">
-                  {item.a}
-                </p>
-              </div>
-            ))}
-
-          </div>
+        {/* TITLE */}
+        <div className="text-center mb-14">
+          <h2 className="text-4xl font-bold text-[#003F8E] mb-4">
+            Frequently Asked Questions
+          </h2>
         </div>
-      </section>
+
+        {/* FAQ ITEMS */}
+        <div className="space-y-4">
+
+          {faqs.map((item, index) => (
+            <div
+              key={index}
+              className="
+                bg-white
+                rounded-xl
+                shadow-sm
+                overflow-hidden
+                transition
+              "
+            >
+
+              {/* QUESTION (CLICKABLE) */}
+              <button
+                onClick={() => toggleFAQ(index)}
+                className="
+                  w-full
+                  text-left
+                  px-6
+                  py-5
+                  flex
+                  justify-between
+                  items-center
+                  font-bold
+                  text-[#003F8E]
+                  hover:bg-gray-50
+                  transition
+                "
+              >
+
+                {item.q}
+
+                <span className="text-xl">
+                  {openIndex === index ? "−" : "+"}
+                </span>
+
+              </button>
+
+              {/* ANSWER (TOGGLE) */}
+              {openIndex === index && (
+                <div className="px-6 pb-6 text-gray-600 leading-7">
+                  {item.a}
+                </div>
+              )}
+
+            </div>
+          ))}
+
+        </div>
+
+      </div>
+    </section>
 
       {/* ================= FINAL CTA ================= */}
       <section className="bg-[#003F8E] text-white py-24 px-6">
