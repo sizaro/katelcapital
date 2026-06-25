@@ -474,7 +474,7 @@ const HowKatelWorks = () => {
 
 
           <h1 className="
-            text-4xl
+            text-2xl
             md:text-5xl
             font-bold
             mb-6
@@ -544,8 +544,8 @@ const HowKatelWorks = () => {
       relative
       bg-[#003F8E]
       text-white
-      px-8
-      py-3
+      px-5
+      py-2
       rounded-xl
       font-bold
       shadow-lg
@@ -581,8 +581,8 @@ const HowKatelWorks = () => {
             onClick={() => setActiveTab("organizations")}
 
             className={`
-              px-8
-              py-3
+              px-3
+              py-1
               rounded-full
               font-semibold
               transition
@@ -605,8 +605,8 @@ const HowKatelWorks = () => {
             onClick={() => setActiveTab("professionals")}
 
             className={`
-              px-8
-              py-3
+              px-3
+              py-1
               rounded-full
               font-semibold
               transition
