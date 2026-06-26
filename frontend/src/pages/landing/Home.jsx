@@ -422,426 +422,155 @@ const Hero = () => {
   );
 };
 
-const HowKatelWorks = () => {
 
+
+const HowKatelWorks = () => {
   const [activeTab, setActiveTab] = useState("organizations");
   const navigate = useNavigate();
 
+  const content = {
+    organizations: {
+      theme: {
+        bg: "bg-[#003F8E]",
+        text: "text-white",
+        card: "bg-white/10 border border-white/20",
+        number: "bg-[#F7C621] text-black",
+        subText: "text-gray-200",
+        cta: "Start Hiring With Katel",
+      },
+      title: "How Katel Works for Organizations",
+      subtitle: "Simple hiring. Qualified talent. Long-term support.",
+      steps: [
+        "Share Your Hiring Needs",
+        "Talent Matching",
+        "Candidate Interviews",
+        "Fast Onboarding",
+        "Ongoing Support",
+      ],
+      redirect: "/organizations",
+    },
 
-  const orgSteps = [
-    "Share Your Hiring Needs",
-    "Talent Matching",
-    "Candidate Interviews",
-    "Fast Onboarding",
-    "Ongoing Support",
-  ];
+    professionals: {
+      theme: {
+        bg: "bg-[#F7F7F7]",
+        text: "text-[#003F8E]",
+        card: "bg-white border shadow-sm",
+        number: "bg-[#003F8E] text-white",
+        subText: "text-gray-600",
+        cta: "Join Katel Talent Network",
+      },
+      title: "How Katel Works for Professionals",
+      subtitle: "Build your career. Work remotely. Grow with confidence.",
+      steps: [
+        "Apply",
+        "Screening & Assessment",
+        "Interview Preparation",
+        "Client Matching",
+        "Start Working & Grow",
+      ],
+      redirect: "/professionals",
+    },
+  };
 
-
-  const proSteps = [
-    "Apply",
-    "Screening & Assessment",
-    "Interview Preparation",
-    "Client Matching",
-    "Start Working & Grow",
-  ];
-
-
-  const steps =
-    activeTab === "organizations"
-      ? orgSteps
-      : proSteps;
-
-
+  const current = content[activeTab];
+  const theme = current.theme;
 
   return (
-
     <>
-
       {/* ================= INTRO ================= */}
-
-      <section className="
-        bg-gradient-to-br
-    from-blue-400
-    via-[#003F8E]
-    to-blue-500
-        text-white
-        py-24
-        px-6
-        text-center
-      ">
-
-        <div className="max-w-5xl mx-auto">
-
-
-          <h1 className="
-            text-2xl
-            md:text-5xl
-            font-bold
-            mb-6
-          ">
-
+      <section className="bg-gradient-to-br from-blue-300 via-[#003F8E] to-blue-300 text-white py-15 px-4 md:py-24 px-6 text-center">
+        <div className="max-w-2xl md:max-w-5xl mx-auto">
+          <h1 className="text-2xl md:text-5xl font-bold mb-6">
             Build Strong Teams.
-            <br/>
-            Create Better Career Opportunities.
-
+            <br />
+            Create Better Opportunities.
           </h1>
 
-
-          <p className="
-  text-xl
-  text-gray-200
-  max-w-3xl
-  mx-auto
-  leading-relaxed
-">
-
-  Katel helps organizations build reliable teams with skilled remote
-  professionals while helping talented people access better career
-  opportunities and flexible work.
-
-</p>
-
-
-          <p className="
-            mt-6
-            text-lg
-            text-gray-200
-          ">
-
-            Flexible workforce solutions.
-            Real talent.
-            Long-term growth.
-
+          <p className="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            One system connects organizations with reliable remote professionals while
+            helping skilled people access meaningful work and long-term growth.
           </p>
-
-
         </div>
-
       </section>
 
-
-
-
       {/* ================= SWITCH BUTTONS ================= */}
+      <section className="py-10 flex justify-center">
+        <div className="flex gap-3 md:gap-6 items-center bg-white px-4 py-2 rounded-full shadow-sm border">
 
-
-      <section className="py-10 bg-gray flex flex-col items-center">
-
-
-        <div className="
-          max-w-3xl
-          mx-auto
-          flex
-          flex-col
-          justify-center
-          gap-4
-          px-6
-        ">
-          <div className="flex flex-col items-center mb-6">
-
-  <div
-    className="
-      relative
-      bg-[#003F8E]
-      text-white
-      px-5
-      py-2
-      rounded-xl
-      font-bold
-      shadow-lg
-    "
-  >
-
-    How Katel Works
-
-
-    <div
-      className="
-        absolute
-        left-1/2
-        -bottom-3
-        -translate-x-1/2
-        w-0
-        h-0
-        border-l-[12px]
-        border-l-transparent
-        border-r-[12px]
-        border-r-transparent
-        border-t-[12px]
-        border-t-[#003F8E]
-      "
-    />
-
-  </div>
-
-</div>   
-
-         <div className="flex gap-10">
-           <button
+          <button
             onClick={() => setActiveTab("organizations")}
-
-            className={`
-              px-3
-              py-1
-              rounded-full
-              font-semibold
-              transition
-
-              ${
-                activeTab === "organizations"
-                ?
-                "bg-[#003F8E] text-white shadow-lg"
-                :
-                "border border-[#003F8E] text-[#003F8E]"
-              }
-            `}
+            className={`px-2 py-1 md:px-5 rounded-full font-semibold transition ${
+              activeTab === "organizations"
+                ? "bg-[#003F8E] text-white shadow"
+                : "text-[#003F8E] border border-[#003F8E]"
+            }`}
           >
             Organizations
           </button>
 
-
-
           <button
             onClick={() => setActiveTab("professionals")}
-
-            className={`
-              px-3
-              py-1
-              rounded-full
-              font-semibold
-              transition
-
-              ${
-                activeTab === "professionals"
-                ?
-                "bg-[#003F8E] text-white shadow-lg"
-                :
-                "border border-[#003F8E] text-[#003F8E]"
-              }
-            `}
+            className={`px-2 py-1 md:px-5 rounded-full font-semibold transition ${
+              activeTab === "professionals"
+                ? "bg-[#003F8E] text-white shadow"
+                : "text-[#003F8E] border border-[#003F8E]"
+            }`}
           >
             Professionals
           </button>
-         </div>
-
 
         </div>
-
-
       </section>
-
-
-
-
 
       {/* ================= HOW IT WORKS ================= */}
-
-
-      <section
-        className={`
-          py-20
-          px-6
-
-          ${
-            activeTab === "organizations"
-            ?
-            "bg-[#003F8E] text-white"
-            :
-            "bg-[#F7F7F7]"
-          }
-
-        `}
-      >
-
-
+      <section className={`${theme.bg} ${theme.text} py-20 px-6 transition-all duration-500`}>
         <div className="max-w-7xl mx-auto">
 
-
-          <div className="text-center mb-16">
-
-
-            <h2 className={`
-              text-3xl
-              md:text-4xl
-              font-bold
-              mb-4
-
-              ${
-                activeTab === "organizations"
-                ?
-                "text-white"
-                :
-                "text-[#003F8E]"
-              }
-            `}>
-
-
+          {/* HEADER */}
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {current.title}
             </h2>
 
-
-            <p className={`
-              ${
-                activeTab === "organizations"
-                ?
-                "text-gray-200"
-                :
-                "text-gray-600"
-              }
-            `}>
-
-
-              {activeTab === "organizations"
-              ?
-              "Simple hiring. Qualified talent. Long-term support."
-              :
-              "Build your career. Work remotely. Grow with confidence."
-              }
-
-
+            <p className={theme.subText}>
+              {current.subtitle}
             </p>
-
-
           </div>
 
-
-
-
-
-          <div className="
-            grid
-            md:grid-cols-5
-            gap-6
-          ">
-
-
-            {steps.map((step,i)=>(
-
+          {/* STEPS */}
+          <div className="grid md:grid-cols-5 gap-6">
+            {current.steps.map((step, i) => (
               <div
                 key={i}
-                className={`
-                  rounded-xl
-                  p-6
-                  text-center
-                  transition
-                  
-                  ${
-                    activeTab === "organizations"
-                    ?
-                    "bg-white/10 border border-white/20"
-                    :
-                    "bg-white border shadow-sm"
-                  }
-
-                `}
+                className={`rounded-xl p-6 text-center transition ${theme.card}`}
               >
-
-
-                <div className={`
-                  w-12
-                  h-12
-                  rounded-full
-                  flex
-                  items-center
-                  justify-center
-                  mx-auto
-                  mb-4
-                  font-bold
-
-                  ${
-                    activeTab === "organizations"
-                    ?
-                    "bg-[#F7C621] text-black"
-                    :
-                    "bg-[#003F8E] text-white"
-                  }
-                `}>
-
-                  {i+1}
-
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 font-bold ${theme.number}`}
+                >
+                  {i + 1}
                 </div>
 
-
-                <h3 className={`
-                  font-bold
-
-                  ${
-                    activeTab === "organizations"
-                    ?
-                    "text-white"
-                    :
-                    "text-[#003F8E]"
-                  }
-
-                `}>
-
-                  {step}
-
-                </h3>
-
-
+                <h3 className="font-bold">{step}</h3>
               </div>
-
             ))}
-
-
           </div>
 
-
-
-          {/* ================= CTA ================= */}
-
-
+          {/* CTA */}
           <div className="text-center mt-14">
-
-
             <button
-
-              onClick={() =>
-                navigate(
-                  activeTab === "organizations"
-                  ? "/organizations"
-                  : "/professionals"
-                )
-              }
-
-              className="
-                bg-[#F7C621]
-                text-black
-                px-10
-                py-3
-                rounded-full
-                font-bold
-                hover:opacity-90
-                transition
-              "
-
+              onClick={() => navigate(current.redirect)}
+              className="bg-[#F7C621] text-black px-10 py-3 rounded-full font-bold hover:opacity-90 transition"
             >
-
-              {activeTab === "organizations"
-              ?
-              "Start Hiring With Katel"
-              :
-              "Join Katel Talent Network"
-              }
-
-
+              {theme.cta}
             </button>
-
-
           </div>
-
-
 
         </div>
-
-
       </section>
-
-
     </>
-
   );
-}
+};
+
 
 const WhyKatel = () => {
   return (
