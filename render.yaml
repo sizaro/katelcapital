@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: katel-capital-api
+    runtime: docker
+    rootDir: backend-nest
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: DATABASE_URL, sync: false }
+      - { key: REDIS_URL, sync: false }
+      - { key: JWT_ACCESS_SECRET, generateValue: true }
+      - { key: FRONTEND_ORIGINS, sync: false }
+      - { key: SEED_SUPER_ADMIN_EMAIL, sync: false }
+      - { key: SEED_SUPER_ADMIN_PASSWORD, sync: false }

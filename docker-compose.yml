@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_DB: katel_capital, POSTGRES_USER: katel, POSTGRES_PASSWORD: katel_dev_password }
+    ports: ["5435:5432"]
+    volumes: [katel_postgres:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U katel -d katel_capital"], interval: 5s, timeout: 5s, retries: 10 }
+  redis:
+    image: redis:7-alpine
+    ports: ["6381:6379"]
+    volumes: [katel_redis:/data]
+volumes: { katel_postgres: {}, katel_redis: {} }

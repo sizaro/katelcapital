@@ -160,6 +160,7 @@ export default function Navbar() {
 
           {/* ================= DESKTOP BUTTONS ================= */}
           <div className="hidden lg:flex items-center gap-3">
+            <button onClick={() => navigate('/login')} className="text-[#003F8E] px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition">Portal login</button>
 
             <button
               onClick={() => navigate("/organizations")}

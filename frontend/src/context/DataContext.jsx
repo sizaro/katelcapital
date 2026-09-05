@@ -89,13 +89,14 @@ const [currentUser, setCurrentUser] = useState(null);
 
   const navigate = useNavigate();
 
-  const SOCKET_API_URL = import.meta.env.VITE_API_URL || "https://salonmanagementsystemv2-ru0i.onrender.com";
-  const API_URL = import.meta.env.VITE_API_URL || "/api";
+  const SOCKET_API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
   const socket = io(SOCKET_API_URL.replace("/api", ""), {
     withCredentials: true,
   transports: ["websocket"],
-  secure: true
+  secure: import.meta.env.PROD,
+  autoConnect: false
 });
 
   // ---------- Employees CRUD ----------
@@ -407,7 +408,6 @@ const resetPassword = async (payload) => {
     searchWorkers,
         users,
         loading,
-        fetchUsers,
         fetchUserById,
         createUser,
         updateUser,
