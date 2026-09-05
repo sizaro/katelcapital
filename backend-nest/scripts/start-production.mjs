@@ -28,7 +28,13 @@ function run(relativeFile, args = []) {
 }
 async function main() {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
-  const database = new Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000 });
+  const database = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : undefined,
+    connectionTimeoutMillis: 15000,
+  });
   await database.connect();
   try {
     // Serialize setup across instances with a dedicated database connection.
