@@ -4,7 +4,7 @@ import * as argon2 from 'argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL!, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined }) });
 const permissionKeys = ['users.view','users.manage','roles.view','roles.manage','professionals.view','professionals.edit','professionals.assess','professionals.vet','professionals.approve_ready','academy.view','academy.manage','academy.grade','clients.view','clients.manage','talent_requests.view','talent_requests.manage','matching.view','matching.manage','interviews.view','interviews.manage','engagements.view','engagements.manage','reports.view','reports.export','finance.view','documents.view_sensitive','documents.download_sensitive','settings.manage','audit.view'];
 const rolePermissions: Record<string, string[]> = {
   SUPER_ADMIN: permissionKeys,
