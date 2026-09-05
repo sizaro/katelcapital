@@ -1,79 +1,33 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import Modal from "../Modal.jsx";
-import LoginForm from "../auth/login.jsx";
-import UserForm from "../UserForm.jsx";
-import ForgotPasswordForm from "../auth/ForgotPasswordForm.jsx";
-import ToastModal from "../ToastModal.jsx";
-import { useData } from "../../context/DataContext.jsx";
+import { useAuth } from "../../features/auth/AuthProvider";
+import { portalPathForRole } from "../../portal/portalAccess";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState(null);
-  const [authForm, setAuthForm] = useState("login");
-  const [toast, setToast] = useState({
-    message: "",
-    type: "success",
-  });
 
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const {
-    loginUser,
-    createUser,
-    checkAuth,
-    forgotPassword,
-  } = useData();
-
-  /* ================= REGISTER ================= */
-  const handleRegister = async (formData) => {
-    try {
-      await createUser({
-        ...formData,
-        role: "worker",
-      });
-
-      setRegisterOpen(false);
-      setLoginOpen(true);
-    } catch {
-      alert("Account creation failed");
+  const handlePortal = () => {
+    if (user) {
+      navigate(portalPathForRole(user.role));
+    } else {
+      navigate("/login");
     }
   };
 
-  /* ================= FORGOT PASSWORD ================= */
-  const handleForgotPasswordSubmit = async (email) => {
-    setLoading(true);
-
-    const res = await forgotPassword(email);
-
-    setLoading(false);
-
-    setToast({
-      message: res.success
-        ? `Reset link sent to ${email}`
-        : res.message || "Something went wrong",
-      type: res.success ? "success" : "error",
-    });
-
-    setTimeout(() => {
-      setToast({
-        message: "",
-        type: "success",
-      });
-
-      setAuthForm("login");
-      setLoginOpen(false);
-    }, 4000);
+  const handleLogout = async () => {
+    await logout();
+    setMenuOpen(false);
+    navigate("/");
   };
 
   return (
     <>
       {/* ================= NAVBAR ================= */}
       <nav className="sticky top-0 z-50 bg-white backdrop-blur-sm border-b border-white/10 shadow-md">
-  <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
           {/* ================= LOGO ================= */}
           <NavLink
@@ -115,7 +69,7 @@ export default function Navbar() {
               <NavLink
                 key={link.to}
                 to={link.to}
-                className=  {({ isActive }) =>
+                className={({ isActive }) =>
                   `font-medium border-b-2 py-2 transition ${
                     isActive
                       ? "border-[#F7C621] text-[#003F8E]"
@@ -152,6 +106,7 @@ export default function Navbar() {
             <button
               onClick={() => setMenuOpen(true)}
               className="text-3xl text-[#003F8E]"
+              aria-label="Open menu"
             >
               ☰
             </button>
@@ -160,7 +115,35 @@ export default function Navbar() {
 
           {/* ================= DESKTOP BUTTONS ================= */}
           <div className="hidden lg:flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="text-[#003F8E] px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition">Portal login</button>
+
+            {user ? (
+              <>
+                <span className="text-sm font-semibold text-slate-600">
+                  {user.firstName}
+                </span>
+
+                <button
+                  onClick={handlePortal}
+                  className="text-[#003F8E] px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition"
+                >
+                  Workspace
+                </button>
+
+                <button
+                  onClick={() => void handleLogout()}
+                  className="border border-slate-300 text-slate-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handlePortal}
+                className="text-[#003F8E] px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition"
+              >
+                Portal login
+              </button>
+            )}
 
             <button
               onClick={() => navigate("/organizations")}
@@ -219,8 +202,9 @@ export default function Navbar() {
             <button
               onClick={() => setMenuOpen(false)}
               className="text-3xl text-[#003F8E]"
+              aria-label="Close menu"
             >
-              ✕
+              ×
             </button>
 
           </div>
@@ -262,59 +246,54 @@ export default function Navbar() {
               </NavLink>
             ))}
 
+            {/* MOBILE AUTH */}
+            <div className="mt-6 flex flex-col gap-3">
+
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  handlePortal();
+                }}
+                className="w-full rounded-lg bg-[#003F8E] px-4 py-3 font-semibold text-white"
+              >
+                {user ? "Open Workspace" : "Portal login"}
+              </button>
+
+              {user && (
+                <button
+                  onClick={() => void handleLogout()}
+                  className="w-full rounded-lg border border-slate-300 px-4 py-3 font-semibold text-slate-700"
+                >
+                  Logout
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/organizations");
+                }}
+                className="w-full rounded-lg border border-[#003F8E] px-4 py-3 font-semibold text-[#003F8E]"
+              >
+                Start Hiring
+              </button>
+
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/professionals");
+                }}
+                className="w-full rounded-lg bg-[#003F8E] px-4 py-3 font-semibold text-white"
+              >
+                Find Work
+              </button>
+
+            </div>
+
           </div>
 
         </div>
       </div>
-
-      {/* ================= MODALS ================= */}
-
-      <Modal
-        isOpen={loginOpen}
-        onClose={() => setLoginOpen(false)}
-      >
-        {authForm === "login" ? (
-          <LoginForm
-            onSubmit={loginUser}
-            loading={loading}
-            error={loginError}
-            onForgotPassword={() =>
-              setAuthForm("forgot")
-            }
-          />
-        ) : (
-          <ForgotPasswordForm
-            onSubmit={handleForgotPasswordSubmit}
-            onCancel={() =>
-              setAuthForm("login")
-            }
-            loading={loading}
-          />
-        )}
-      </Modal>
-
-      <Modal
-        isOpen={registerOpen}
-        onClose={() => setRegisterOpen(false)}
-      >
-        <UserForm
-          role="worker"
-          onSubmit={handleRegister}
-        />
-      </Modal>
-
-      {toast.message && (
-        <ToastModal
-          message={toast.message}
-          type={toast.type}
-          onClose={() =>
-            setToast({
-              message: "",
-              type: toast.type,
-            })
-          }
-        />
-      )}
     </>
   );
 }
