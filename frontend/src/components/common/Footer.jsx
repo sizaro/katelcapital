@@ -6,19 +6,15 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#003F8E] text-white mt-16">
-
       {/* TOP SECTION */}
       <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-10">
-
         {/* BRAND */}
         <div>
-          <h2 className="text-2xl font-bold text-[#F7C621]">
-            Katel Capital
-          </h2>
+          <h2 className="text-2xl font-bold text-[#F7C621]">Katel Capital</h2>
 
           <p className="text-sm text-gray-200 mt-3 leading-relaxed">
-            Connecting organizations with reliable professionals and
-            creating meaningful career opportunities across Africa.
+            Connecting organizations with reliable professionals and creating
+            meaningful career opportunities across Africa.
           </p>
 
           {/* NEW TAGLINE */}
@@ -34,7 +30,6 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-2 text-sm text-gray-200">
-
             <li>
               <button
                 onClick={() => navigate("/professionals")}
@@ -61,7 +56,6 @@ export default function Footer() {
                 About Katel
               </button>
             </li>
-
           </ul>
         </div>
 
@@ -72,7 +66,6 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-2 text-sm text-gray-200">
-
             <li>
               <button
                 onClick={() => navigate("/organizations")}
@@ -99,54 +92,91 @@ export default function Footer() {
                 Why Katel
               </button>
             </li>
-
           </ul>
         </div>
 
         {/* CONTACT */}
         <div>
-          <h3 className="font-semibold text-[#F7C621] mb-3">
-            Contact
-          </h3>
+          <h3 className="font-semibold text-[#F7C621] mb-3">Contact</h3>
 
           <ul className="space-y-2 text-sm text-gray-200">
-            <li>Email: support@katelcapital.com</li>
-            <li>Phone: +256 XXX XXX XXX</li>
+            <li>
+              Email:{" "}
+              <a
+                href="mailto:talent@katelcapital.net"
+                className="hover:text-[#F7C621]"
+              >
+                talent@katelcapital.net
+              </a>
+            </li>
+
+            <li>
+              Phone:{" "}
+              <a
+                href="https://wa.me/256788164317"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[#F7C621]"
+              >
+                +256788164317 (WhatsApp)
+              </a>
+            </li>
+
             <li>Kampala, Uganda</li>
           </ul>
 
           <div className="flex gap-4 mt-4 text-sm flex-wrap">
-
             <a
-              href="#"
+              href="https://www.facebook.com/share/16C3VFjQZPP/"
+              target="_blank"
+              rel="noreferrer"
               className="hover:text-[#F7C621]"
             >
               Facebook
             </a>
 
             <a
-              href="#"
+              href="https://www.linkedin.com/company/katel-capital-ltd/"
+              target="_blank"
+              rel="noreferrer"
               className="hover:text-[#F7C621]"
             >
               LinkedIn
             </a>
 
             <a
-              href="#"
+              href="https://wa.me/256788164317"
+              target="_blank"
+              rel="noreferrer"
               className="hover:text-[#F7C621]"
             >
               WhatsApp
             </a>
 
+            <a
+              href="https://www.tiktok.com/@katel.capital.ltd?_r=1&_t=ZS-99weCFVEnVl"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#F7C621]"
+            >
+              TikTok
+            </a>
+
+            <a
+              href="https://www.instagram.com/katelcapital?stkn=MTZhMGZlam93b3BkNA=="
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#F7C621]"
+            >
+              Instagram
+            </a>
           </div>
         </div>
       </div>
 
       {/* BOTTOM BAR */}
       <div className="border-t border-white/20">
-
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm text-gray-300">
-
           {/* COPYRIGHT */}
           <p className="text-center md:text-left">
             © {new Date().getFullYear()} Katel Capital. All rights reserved.
@@ -154,23 +184,17 @@ export default function Footer() {
 
           {/* FOOTER LINKS */}
           <div className="flex gap-6 mt-3 md:mt-0">
-
             <button className="hover:text-[#F7C621] transition">
               Privacy Policy
             </button>
 
-            <button className="hover:text-[#F7C621] transition">
-              Terms
-            </button>
-
+            <button className="hover:text-[#F7C621] transition">Terms</button>
           </div>
         </div>
 
         {/* SIZAFORGETECH CREDIT */}
         <div className="text-center pb-5 text-xs text-gray-300 px-4">
-
           Built & maintained by{" "}
-
           <a
             href="https://sizaforgetech.com"
             target="_blank"
@@ -179,9 +203,7 @@ export default function Footer() {
           >
             SizaForgeTech
           </a>
-
         </div>
-
       </div>
     </footer>
   );
