@@ -1,0 +1,612 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  DISABLED
+}
+enum PermissionEffect {
+  GRANT
+  DENY
+}
+enum ProfessionalStatus {
+  ACADEMY_REQUIRED
+  ACADEMY_IN_PROGRESS
+  ACADEMY_COMPLETED
+  PROFILE_INCOMPLETE
+  PROFILE_COMPLETE
+  ASSESSMENT_PENDING
+  ASSESSED
+  VETTING_PENDING
+  VETTED
+  KATEL_READY
+  AVAILABLE
+  INTERVIEWING
+  SELECTED
+  ONBOARDING
+  DEPLOYED
+}
+enum RequestStatus {
+  NEW
+  UNDER_REVIEW
+  CLARIFICATION_REQUIRED
+  MATCHING_IN_PROGRESS
+  CANDIDATES_READY
+  INTERVIEWS_IN_PROGRESS
+  CANDIDATE_SELECTED
+  ONBOARDING
+  ACTIVE_ENGAGEMENT
+  CLOSED
+  CANCELLED
+}
+enum EnrollmentStatus {
+  APPLIED
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  WITHDRAWN
+}
+enum WorkflowStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Role {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  displayName String
+  description String?
+  isSystem Boolean @default(false)
+  users User[]
+  permissions RolePermission[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Permission {
+  id String @id @default(uuid()) @db.Uuid
+  key String @unique
+  description String?
+  roles RolePermission[]
+  overrides UserPermissionOverride[]
+}
+
+model RolePermission {
+  roleId String @db.Uuid
+  permissionId String @db.Uuid
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+}
+
+model UserPermissionOverride {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  permissionId String @db.Uuid
+  effect PermissionEffect
+  reason String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@unique([userId, permissionId])
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  email String @unique
+  passwordHash String
+  firstName String
+  lastName String
+  phone String?
+  status UserStatus @default(PENDING)
+  emailVerifiedAt DateTime?
+  roleId String @db.Uuid
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  overrides UserPermissionOverride[]
+  sessions RefreshSession[]
+  emailTokens EmailVerificationToken[]
+  resetTokens PasswordResetToken[]
+  logins LoginHistory[]
+  enrollments AcademyEnrollment[]
+  completions AcademyCompletion[]
+  professional ProfessionalProfile?
+  organizations OrganizationUser[]
+  notifications Notification[]
+  documents Document[]
+  payments Payment[]
+  auditLogs AuditLog[]
+  messages Message[]
+  @@index([roleId, status])
+}
+
+model RefreshSession {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  tokenHash String @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+}
+
+model EmailVerificationToken {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  tokenHash String @unique
+  expiresAt DateTime
+  usedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  tokenHash String @unique
+  expiresAt DateTime
+  usedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LoginHistory {
+  id String @id @default(uuid()) @db.Uuid
+  userId String? @db.Uuid
+  email String
+  succeeded Boolean
+  reason String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([email, createdAt])
+}
+
+model AcademyCourse {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  title String
+  description String?
+  isActive Boolean @default(true)
+  enrollments AcademyEnrollment[]
+  completions AcademyCompletion[]
+}
+
+model AcademyEnrollment {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  courseId String @db.Uuid
+  status EnrollmentStatus @default(APPLIED)
+  enrolledAt DateTime?
+  completedAt DateTime?
+  progressPercent Int @default(0)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  results AcademyResult[]
+  completion AcademyCompletion?
+  @@unique([userId, courseId])
+}
+
+model AcademyResult {
+  id String @id @default(uuid()) @db.Uuid
+  enrollmentId String @db.Uuid
+  title String
+  score Decimal? @db.Decimal(6,2)
+  maximumScore Decimal? @db.Decimal(6,2)
+  enrollment AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model AcademyCompletion {
+  id String @id @default(uuid()) @db.Uuid
+  completionCode String @unique
+  userId String @db.Uuid
+  courseId String @db.Uuid
+  enrollmentId String @unique @db.Uuid
+  completionDate DateTime
+  finalScore Decimal? @db.Decimal(6,2)
+  status WorkflowStatus @default(COMPLETED)
+  certificateStorageKey String?
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course AcademyCourse @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  enrollment AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+}
+
+model ProfessionalCategory {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  profiles ProfessionalProfile[]
+}
+
+model ProfessionalProfile {
+  id String @id @default(uuid()) @db.Uuid
+  professionalCode String @unique
+  userId String @unique @db.Uuid
+  categoryId String? @db.Uuid
+  summary String?
+  location String?
+  timezone String @default("Africa/Kampala")
+  linkedinUrl String?
+  portfolioUrl String?
+  cvStorageKey String?
+  completionPercent Int @default(0)
+  status ProfessionalStatus @default(PROFILE_INCOMPLETE)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  category ProfessionalCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  education ProfessionalEducation[]
+  experience ProfessionalExperience[]
+  skills ProfessionalSkill[]
+  languages ProfessionalLanguage[]
+  certifications ProfessionalCertification[]
+  statuses ProfessionalStatusHistory[]
+  assessments ProfessionalAssessment[]
+  vetting VettingCase[]
+  readiness ReadinessApproval[]
+  matches MatchCandidate[]
+  interviews Interview[]
+  engagements Engagement[]
+  @@index([status, categoryId])
+}
+
+model ProfessionalEducation {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  institution String
+  qualification String
+  field String?
+  startDate DateTime?
+  endDate DateTime?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+}
+
+model ProfessionalExperience {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  organization String
+  title String
+  startDate DateTime
+  endDate DateTime?
+  description String?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  category String?
+  profiles ProfessionalSkill[]
+  requests TalentRequestSkill[]
+}
+
+model ProfessionalSkill {
+  professionalId String @db.Uuid
+  skillId String @db.Uuid
+  proficiency String?
+  yearsExperience Int?
+  verified Boolean @default(false)
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  @@id([professionalId, skillId])
+}
+
+model Language {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  profiles ProfessionalLanguage[]
+}
+
+model ProfessionalLanguage {
+  professionalId String @db.Uuid
+  languageId String @db.Uuid
+  proficiency String
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Restrict)
+  @@id([professionalId, languageId])
+}
+
+model ProfessionalCertification {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  name String
+  issuer String?
+  issuedAt DateTime?
+  expiresAt DateTime?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+}
+
+model ProfessionalStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  fromStatus ProfessionalStatus?
+  toStatus ProfessionalStatus
+  actorId String? @db.Uuid
+  reason String?
+  createdAt DateTime @default(now())
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  @@index([professionalId, createdAt])
+}
+
+model AssessmentDefinition {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  criteria AssessmentCriterion[]
+  sessions ProfessionalAssessment[]
+}
+
+model AssessmentCriterion {
+  id String @id @default(uuid()) @db.Uuid
+  definitionId String @db.Uuid
+  name String
+  weight Decimal @default(1) @db.Decimal(5,2)
+  visibleToProfessional Boolean @default(false)
+  definition AssessmentDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  scores AssessmentScore[]
+  @@unique([definitionId, name])
+}
+
+model ProfessionalAssessment {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  definitionId String @db.Uuid
+  assessorId String? @db.Uuid
+  status WorkflowStatus @default(DRAFT)
+  totalScore Decimal? @db.Decimal(6,2)
+  recommendation String?
+  comments String?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  definition AssessmentDefinition @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  scores AssessmentScore[]
+}
+
+model AssessmentScore {
+  assessmentId String @db.Uuid
+  criterionId String @db.Uuid
+  score Decimal @db.Decimal(6,2)
+  comments String?
+  visibleToProfessional Boolean @default(false)
+  assessment ProfessionalAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  criterion AssessmentCriterion @relation(fields: [criterionId], references: [id], onDelete: Restrict)
+  @@id([assessmentId, criterionId])
+}
+
+model VettingCase {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  officerId String? @db.Uuid
+  approverId String? @db.Uuid
+  status WorkflowStatus @default(OPEN)
+  recommendation String?
+  decision String?
+  comments String?
+  openedAt DateTime @default(now())
+  completedAt DateTime?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+}
+
+model ReadinessApproval {
+  id String @id @default(uuid()) @db.Uuid
+  professionalId String @db.Uuid
+  approverId String @db.Uuid
+  rulesVersion String?
+  comments String?
+  active Boolean @default(true)
+  approvedAt DateTime @default(now())
+  revokedAt DateTime?
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  @@index([professionalId, active])
+}
+
+model ClientOrganization {
+  id String @id @default(uuid()) @db.Uuid
+  organizationCode String @unique
+  legalName String
+  industry String?
+  country String?
+  address String?
+  website String?
+  status WorkflowStatus @default(OPEN)
+  assignedManagerId String? @db.Uuid
+  users OrganizationUser[]
+  contacts ClientContact[]
+  requests TalentRequest[]
+  engagements Engagement[]
+}
+
+model ClientContact {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  name String
+  title String?
+  email String
+  phone String?
+  primary Boolean @default(false)
+  organization ClientOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model OrganizationUser {
+  organizationId String @db.Uuid
+  userId String @db.Uuid
+  title String?
+  organization ClientOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([organizationId, userId])
+}
+
+model TalentRequest {
+  id String @id @default(uuid()) @db.Uuid
+  requestCode String @unique
+  organizationId String @db.Uuid
+  title String
+  summary String?
+  location String?
+  headcount Int @default(1)
+  status RequestStatus @default(NEW)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organization ClientOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  skills TalentRequestSkill[]
+  statuses TalentRequestStatusHistory[]
+  matches MatchCandidate[]
+  interviews Interview[]
+  engagements Engagement[]
+  @@index([organizationId, status])
+}
+
+model TalentRequestSkill {
+  requestId String @db.Uuid
+  skillId String @db.Uuid
+  required Boolean @default(true)
+  weight Decimal @default(1) @db.Decimal(5,2)
+  request TalentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  @@id([requestId, skillId])
+}
+
+model TalentRequestStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  fromStatus RequestStatus?
+  toStatus RequestStatus
+  actorId String? @db.Uuid
+  reason String?
+  createdAt DateTime @default(now())
+  request TalentRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+}
+
+model MatchCandidate {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  professionalId String @db.Uuid
+  score Decimal @db.Decimal(6,2)
+  scoreBreakdown Json?
+  status WorkflowStatus @default(DRAFT)
+  request TalentRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  @@unique([requestId, professionalId])
+}
+
+model Interview {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  professionalId String @db.Uuid
+  status WorkflowStatus @default(OPEN)
+  scheduledAt DateTime?
+  meetingUrl String?
+  feedback Json?
+  request TalentRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+}
+
+model Engagement {
+  id String @id @default(uuid()) @db.Uuid
+  engagementCode String @unique
+  requestId String @db.Uuid
+  organizationId String @db.Uuid
+  professionalId String @db.Uuid
+  status WorkflowStatus @default(OPEN)
+  startDate DateTime
+  endDate DateTime?
+  request TalentRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  organization ClientOrganization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  professional ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Restrict)
+  supportCases SupportCase[]
+}
+
+model SupportCase {
+  id String @id @default(uuid()) @db.Uuid
+  engagementId String @db.Uuid
+  subject String
+  description String
+  status WorkflowStatus @default(OPEN)
+  priority String @default("NORMAL")
+  engagement Engagement @relation(fields: [engagementId], references: [id], onDelete: Restrict)
+}
+
+model Conversation {
+  id String @id @default(uuid()) @db.Uuid
+  subject String?
+  messages Message[]
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id String @id @default(uuid()) @db.Uuid
+  conversationId String @db.Uuid
+  senderId String @db.Uuid
+  body String
+  createdAt DateTime @default(now())
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Restrict)
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  title String
+  body String
+  type String
+  link String?
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, readAt])
+}
+
+model Document {
+  id String @id @default(uuid()) @db.Uuid
+  ownerId String @db.Uuid
+  storageKey String
+  fileName String
+  mimeType String
+  category String
+  sensitivity String @default("STANDARD")
+  createdAt DateTime @default(now())
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+}
+
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  userId String? @db.Uuid
+  reference String @unique
+  amount Decimal @db.Decimal(14,2)
+  currency String @default("UGX")
+  purpose String
+  status WorkflowStatus @default(OPEN)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String? @db.Uuid
+  action String
+  entityType String
+  entityId String?
+  metadata Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  @@index([entityType, entityId, createdAt])
+}
+
+model SystemSetting {
+  id String @id @default(uuid()) @db.Uuid
+  key String @unique
+  value Json
+  description String?
+  updatedAt DateTime @updatedAt
+}
