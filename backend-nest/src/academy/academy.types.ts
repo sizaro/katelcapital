@@ -1,5 +1,5 @@
 import { Field, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 @ObjectType()
 export class AcademyLesson {
@@ -93,6 +93,7 @@ export class UpdateAcademyCourseInput {
 
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 }
 
@@ -111,6 +112,29 @@ export class CreateAcademyModuleInput {
   @IsInt()
   @Min(1)
   order!: number;
+}
+
+@InputType()
+export class UpdateAcademyModuleInput {
+  @Field(() => String)
+  @IsString()
+  title!: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  order?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
 @InputType()
@@ -133,4 +157,32 @@ export class CreateAcademyLessonInput {
   @IsInt()
   @Min(1)
   order!: number;
+}
+
+@InputType()
+export class UpdateAcademyLessonInput {
+  @Field(() => String)
+  @IsString()
+  title!: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  order?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
