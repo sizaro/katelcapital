@@ -5,43 +5,50 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  AcademyContentBlockType,
+  AcademyContentStatus,
+  CreateAcademyContentBlockInput,
   CreateAcademyCourseInput,
-  CreateAcademyLessonInput,
-  CreateAcademyModuleInput,
+  CreateAcademySessionInput,
+  CreateAcademyWeekInput,
+  UpdateAcademyContentBlockInput,
   UpdateAcademyCourseInput,
-  UpdateAcademyLessonInput,
-  UpdateAcademyModuleInput,
+  UpdateAcademySessionInput,
+  UpdateAcademyWeekInput,
 } from './academy.types';
 
 @Injectable()
 export class AcademyService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listActiveCourses() {
-    return this.prisma.academyCourse.findMany({
-      where: {
-        isActive: true,
+  private readonly courseInclude = {
+    weeks: {
+      orderBy: {
+        order: 'asc' as const,
       },
       include: {
-        modules: {
-          where: {
-            isActive: true,
-          },
+        sessions: {
           orderBy: {
-            order: 'asc',
+            order: 'asc' as const,
           },
           include: {
-            lessons: {
-              where: {
-                isActive: true,
-              },
+            contentBlocks: {
               orderBy: {
-                order: 'asc',
+                order: 'asc' as const,
               },
             },
           },
         },
       },
+    },
+  };
+
+  async listActiveCourses() {
+    return this.prisma.academyCourse.findMany({
+      where: {
+        isActive: true,
+      },
+      include: this.courseInclude,
       orderBy: {
         createdAt: 'desc',
       },
@@ -54,26 +61,7 @@ export class AcademyService {
         id,
         isActive: true,
       },
-      include: {
-        modules: {
-          where: {
-            isActive: true,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-          include: {
-            lessons: {
-              where: {
-                isActive: true,
-              },
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
-        },
-      },
+      include: this.courseInclude,
     });
 
     if (!course) {
@@ -96,7 +84,9 @@ export class AcademyService {
     }
 
     const existingCourse = await this.prisma.academyCourse.findUnique({
-      where: { code },
+      where: {
+        code,
+      },
     });
 
     if (existingCourse) {
@@ -111,26 +101,15 @@ export class AcademyService {
         title,
         description: input.description?.trim() || null,
       },
-      include: {
-        modules: {
-          orderBy: {
-            order: 'asc',
-          },
-          include: {
-            lessons: {
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
-        },
-      },
+      include: this.courseInclude,
     });
   }
 
   async updateCourse(id: string, input: UpdateAcademyCourseInput) {
     const existingCourse = await this.prisma.academyCourse.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
     });
 
     if (!existingCourse) {
@@ -144,19 +123,66 @@ export class AcademyService {
     }
 
     return this.prisma.academyCourse.update({
-      where: { id },
+      where: {
+        id,
+      },
       data: {
         title,
         description: input.description?.trim() || null,
-        ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        ...(input.isActive !== undefined
+          ? {
+              isActive: input.isActive,
+            }
+          : {}),
+      },
+      include: this.courseInclude,
+    });
+  }
+
+  async createWeek(courseId: string, input: CreateAcademyWeekInput) {
+    const course = await this.prisma.academyCourse.findUnique({
+      where: {
+        id: courseId,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Academy course not found');
+    }
+
+    const title = input.title.trim();
+
+    if (!title) {
+      throw new BadRequestException('Week title is required');
+    }
+
+    const existingWeek = await this.prisma.academyWeek.findFirst({
+      where: {
+        courseId,
+        order: input.order,
+      },
+    });
+
+    if (existingWeek) {
+      throw new BadRequestException(
+        `A week with order ${input.order} already exists in this course`,
+      );
+    }
+
+    return this.prisma.academyWeek.create({
+      data: {
+        courseId,
+        title,
+        description: input.description?.trim() || null,
+        order: input.order,
       },
       include: {
-        modules: {
+        sessions: {
           orderBy: {
             order: 'asc',
           },
           include: {
-            lessons: {
+            contentBlocks: {
               orderBy: {
                 order: 'asc',
               },
@@ -167,43 +193,115 @@ export class AcademyService {
     });
   }
 
-  async createModule(courseId: string, input: CreateAcademyModuleInput) {
-    const course = await this.prisma.academyCourse.findUnique({
-      where: { id: courseId },
+  async updateWeek(id: string, input: UpdateAcademyWeekInput) {
+    const existingWeek = await this.prisma.academyWeek.findUnique({
+      where: {
+        id,
+      },
     });
 
-    if (!course) {
-      throw new NotFoundException('Academy course not found');
+    if (!existingWeek) {
+      throw new NotFoundException('Academy week not found');
     }
 
     const title = input.title.trim();
 
     if (!title) {
-      throw new BadRequestException('Module title is required');
+      throw new BadRequestException('Week title is required');
     }
 
-    const existingModule = await this.prisma.academyModule.findFirst({
+    if (input.order !== undefined && input.order !== existingWeek.order) {
+      const conflictingWeek = await this.prisma.academyWeek.findFirst({
+        where: {
+          courseId: existingWeek.courseId,
+          order: input.order,
+          NOT: {
+            id,
+          },
+        },
+      });
+
+      if (conflictingWeek) {
+        throw new BadRequestException(
+          `A week with order ${input.order} already exists in this course`,
+        );
+      }
+    }
+
+    return this.prisma.academyWeek.update({
       where: {
-        courseId,
+        id,
+      },
+      data: {
+        title,
+        description: input.description?.trim() || null,
+        ...(input.order !== undefined
+          ? {
+              order: input.order,
+            }
+          : {}),
+        ...(input.status !== undefined
+          ? {
+              status: input.status,
+            }
+          : {}),
+      },
+      include: {
+        sessions: {
+          orderBy: {
+            order: 'asc',
+          },
+          include: {
+            contentBlocks: {
+              orderBy: {
+                order: 'asc',
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async createSession(weekId: string, input: CreateAcademySessionInput) {
+    const week = await this.prisma.academyWeek.findUnique({
+      where: {
+        id: weekId,
+      },
+    });
+
+    if (!week) {
+      throw new NotFoundException('Academy week not found');
+    }
+
+    const title = input.title.trim();
+
+    if (!title) {
+      throw new BadRequestException('Session title is required');
+    }
+
+    const existingSession = await this.prisma.academySession.findFirst({
+      where: {
+        weekId,
         order: input.order,
       },
     });
 
-    if (existingModule) {
+    if (existingSession) {
       throw new BadRequestException(
-        `A module with order ${input.order} already exists in this course`,
+        `A session with order ${input.order} already exists in this week`,
       );
     }
 
-    return this.prisma.academyModule.create({
+    return this.prisma.academySession.create({
       data: {
-        courseId,
+        weekId,
         title,
         description: input.description?.trim() || null,
         order: input.order,
       },
       include: {
-        lessons: {
+        contentBlocks: {
           orderBy: {
             order: 'asc',
           },
@@ -212,25 +310,27 @@ export class AcademyService {
     });
   }
 
-  async updateModule(id: string, input: UpdateAcademyModuleInput) {
-    const existingModule = await this.prisma.academyModule.findUnique({
-      where: { id },
+  async updateSession(id: string, input: UpdateAcademySessionInput) {
+    const existingSession = await this.prisma.academySession.findUnique({
+      where: {
+        id,
+      },
     });
 
-    if (!existingModule) {
-      throw new NotFoundException('Academy module not found');
+    if (!existingSession) {
+      throw new NotFoundException('Academy session not found');
     }
 
     const title = input.title.trim();
 
     if (!title) {
-      throw new BadRequestException('Module title is required');
+      throw new BadRequestException('Session title is required');
     }
 
-    if (input.order !== undefined && input.order !== existingModule.order) {
-      const conflictingModule = await this.prisma.academyModule.findFirst({
+    if (input.order !== undefined && input.order !== existingSession.order) {
+      const conflictingSession = await this.prisma.academySession.findFirst({
         where: {
-          courseId: existingModule.courseId,
+          weekId: existingSession.weekId,
           order: input.order,
           NOT: {
             id,
@@ -238,23 +338,33 @@ export class AcademyService {
         },
       });
 
-      if (conflictingModule) {
+      if (conflictingSession) {
         throw new BadRequestException(
-          `A module with order ${input.order} already exists in this course`,
+          `A session with order ${input.order} already exists in this week`,
         );
       }
     }
 
-    return this.prisma.academyModule.update({
-      where: { id },
+    return this.prisma.academySession.update({
+      where: {
+        id,
+      },
       data: {
         title,
         description: input.description?.trim() || null,
-        ...(input.order !== undefined ? { order: input.order } : {}),
-        ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        ...(input.order !== undefined
+          ? {
+              order: input.order,
+            }
+          : {}),
+        ...(input.status !== undefined
+          ? {
+              status: input.status,
+            }
+          : {}),
       },
       include: {
-        lessons: {
+        contentBlocks: {
           orderBy: {
             order: 'asc',
           },
@@ -263,64 +373,82 @@ export class AcademyService {
     });
   }
 
-  async createLesson(moduleId: string, input: CreateAcademyLessonInput) {
-    const module = await this.prisma.academyModule.findUnique({
-      where: { id: moduleId },
+  async createContentBlock(
+    sessionId: string,
+    input: CreateAcademyContentBlockInput,
+  ) {
+    const session = await this.prisma.academySession.findUnique({
+      where: {
+        id: sessionId,
+      },
     });
 
-    if (!module) {
-      throw new NotFoundException('Academy module not found');
+    if (!session) {
+      throw new NotFoundException('Academy session not found');
     }
 
-    const title = input.title.trim();
+    const title = input.title?.trim() || null;
+    const textContent = input.body?.trim() || null;
 
-    if (!title) {
-      throw new BadRequestException('Lesson title is required');
+    if (input.type === AcademyContentBlockType.TEXT && !textContent) {
+      throw new BadRequestException('Text content blocks require body content');
     }
 
-    const existingLesson = await this.prisma.academyLesson.findFirst({
+    const existingBlock = await this.prisma.academyContentBlock.findFirst({
       where: {
-        moduleId,
+        sessionId,
         order: input.order,
       },
     });
 
-    if (existingLesson) {
+    if (existingBlock) {
       throw new BadRequestException(
-        `A lesson with order ${input.order} already exists in this module`,
+        `A content block with order ${input.order} already exists in this session`,
       );
     }
 
-    return this.prisma.academyLesson.create({
+    return this.prisma.academyContentBlock.create({
       data: {
-        moduleId,
+        sessionId,
+        type: input.type,
         title,
-        description: input.description?.trim() || null,
-        content: input.content?.trim() || null,
+        textContent,
         order: input.order,
       },
     });
   }
 
-  async updateLesson(id: string, input: UpdateAcademyLessonInput) {
-    const existingLesson = await this.prisma.academyLesson.findUnique({
-      where: { id },
+  async updateContentBlock(id: string, input: UpdateAcademyContentBlockInput) {
+    const existingBlock = await this.prisma.academyContentBlock.findUnique({
+      where: {
+        id,
+      },
     });
 
-    if (!existingLesson) {
-      throw new NotFoundException('Academy lesson not found');
+    if (!existingBlock) {
+      throw new NotFoundException('Academy content block not found');
     }
 
-    const title = input.title.trim();
+    const type = input.type ?? existingBlock.type;
 
-    if (!title) {
-      throw new BadRequestException('Lesson title is required');
+    const title =
+      input.title !== undefined
+        ? input.title.trim() || null
+        : existingBlock.title;
+
+    const textContent =
+      input.body !== undefined
+        ? input.body.trim() || null
+        : existingBlock.textContent;
+
+    if (type === AcademyContentBlockType.TEXT && !textContent) {
+      throw new BadRequestException('Text content blocks require body content');
     }
 
-    if (input.order !== undefined && input.order !== existingLesson.order) {
-      const conflictingLesson = await this.prisma.academyLesson.findFirst({
+    if (input.order !== undefined && input.order !== existingBlock.order) {
+      const conflictingBlock = await this.prisma.academyContentBlock.findFirst({
         where: {
-          moduleId: existingLesson.moduleId,
+          sessionId: existingBlock.sessionId,
           order: input.order,
           NOT: {
             id,
@@ -328,21 +456,35 @@ export class AcademyService {
         },
       });
 
-      if (conflictingLesson) {
+      if (conflictingBlock) {
         throw new BadRequestException(
-          `A lesson with order ${input.order} already exists in this module`,
+          `A content block with order ${input.order} already exists in this session`,
         );
       }
     }
 
-    return this.prisma.academyLesson.update({
-      where: { id },
+    return this.prisma.academyContentBlock.update({
+      where: {
+        id,
+      },
       data: {
+        ...(input.type !== undefined
+          ? {
+              type: input.type,
+            }
+          : {}),
         title,
-        description: input.description?.trim() || null,
-        content: input.content?.trim() || null,
-        ...(input.order !== undefined ? { order: input.order } : {}),
-        ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        textContent,
+        ...(input.order !== undefined
+          ? {
+              order: input.order,
+            }
+          : {}),
+        ...(input.status !== undefined
+          ? {
+              status: input.status,
+            }
+          : {}),
       },
     });
   }

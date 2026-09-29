@@ -1,28 +1,78 @@
-import { Field, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  Field,
+  ID,
+  InputType,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
+
+export enum AcademyContentBlockType {
+  TEXT = 'TEXT',
+  VIDEO = 'VIDEO',
+  IMAGE = 'IMAGE',
+  PDF = 'PDF',
+  CALLOUT = 'CALLOUT',
+  TABLE = 'TABLE',
+  QUICK_CHECK = 'QUICK_CHECK',
+}
+
+registerEnumType(AcademyContentBlockType, {
+  name: 'AcademyContentBlockType',
+});
+
+export enum AcademyContentStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+registerEnumType(AcademyContentStatus, {
+  name: 'AcademyContentStatus',
+});
 
 @ObjectType()
-export class AcademyLesson {
+export class AcademyContentBlock {
   @Field(() => ID)
   id!: string;
 
-  @Field(() => String)
-  title!: string;
+  @Field(() => AcademyContentBlockType)
+  type!: AcademyContentBlockType;
 
   @Field(() => String, { nullable: true })
-  description?: string | null;
+  title?: string | null;
 
   @Field(() => String, { nullable: true })
-  content?: string | null;
+  body?: string | null;
 
   @Field(() => Int)
   order!: number;
+
+  @Field(() => AcademyContentStatus)
+  status!: AcademyContentStatus;
+
+  @Field(() => Date)
+  createdAt!: Date;
+
+  @Field(() => Date)
+  updatedAt!: Date;
 }
 
 @ObjectType()
-export class AcademyModule {
+export class AcademySession {
   @Field(() => ID)
   id!: string;
+
+  @Field(() => ID)
+  weekId!: string;
 
   @Field(() => String)
   title!: string;
@@ -33,8 +83,47 @@ export class AcademyModule {
   @Field(() => Int)
   order!: number;
 
-  @Field(() => [AcademyLesson])
-  lessons!: AcademyLesson[];
+  @Field(() => AcademyContentStatus)
+  status!: AcademyContentStatus;
+
+  @Field(() => [AcademyContentBlock])
+  contentBlocks!: AcademyContentBlock[];
+
+  @Field(() => Date)
+  createdAt!: Date;
+
+  @Field(() => Date)
+  updatedAt!: Date;
+}
+
+@ObjectType()
+export class AcademyWeek {
+  @Field(() => ID)
+  id!: string;
+
+  @Field(() => ID)
+  courseId!: string;
+
+  @Field(() => String)
+  title!: string;
+
+  @Field(() => String, { nullable: true })
+  description?: string | null;
+
+  @Field(() => Int)
+  order!: number;
+
+  @Field(() => AcademyContentStatus)
+  status!: AcademyContentStatus;
+
+  @Field(() => [AcademySession])
+  sessions!: AcademySession[];
+
+  @Field(() => Date)
+  createdAt!: Date;
+
+  @Field(() => Date)
+  updatedAt!: Date;
 }
 
 @ObjectType()
@@ -54,8 +143,8 @@ export class AcademyCourse {
   @Field(() => Boolean)
   isActive!: boolean;
 
-  @Field(() => [AcademyModule])
-  modules!: AcademyModule[];
+  @Field(() => [AcademyWeek])
+  weeks!: AcademyWeek[];
 
   @Field(() => Date)
   createdAt!: Date;
@@ -98,7 +187,7 @@ export class UpdateAcademyCourseInput {
 }
 
 @InputType()
-export class CreateAcademyModuleInput {
+export class CreateAcademyWeekInput {
   @Field(() => String)
   @IsString()
   title!: string;
@@ -115,7 +204,7 @@ export class CreateAcademyModuleInput {
 }
 
 @InputType()
-export class UpdateAcademyModuleInput {
+export class UpdateAcademyWeekInput {
   @Field(() => String)
   @IsString()
   title!: string;
@@ -131,14 +220,14 @@ export class UpdateAcademyModuleInput {
   @Min(1)
   order?: number;
 
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => AcademyContentStatus, { nullable: true })
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsEnum(AcademyContentStatus)
+  status?: AcademyContentStatus;
 }
 
 @InputType()
-export class CreateAcademyLessonInput {
+export class CreateAcademySessionInput {
   @Field(() => String)
   @IsString()
   title!: string;
@@ -147,11 +236,6 @@ export class CreateAcademyLessonInput {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @Field(() => String, { nullable: true })
-  @IsOptional()
-  @IsString()
-  content?: string;
 
   @Field(() => Int)
   @IsInt()
@@ -160,7 +244,7 @@ export class CreateAcademyLessonInput {
 }
 
 @InputType()
-export class UpdateAcademyLessonInput {
+export class UpdateAcademySessionInput {
   @Field(() => String)
   @IsString()
   title!: string;
@@ -170,10 +254,56 @@ export class UpdateAcademyLessonInput {
   @IsString()
   description?: string;
 
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  order?: number;
+
+  @Field(() => AcademyContentStatus, { nullable: true })
+  @IsOptional()
+  @IsEnum(AcademyContentStatus)
+  status?: AcademyContentStatus;
+}
+
+@InputType()
+export class CreateAcademyContentBlockInput {
+  @Field(() => AcademyContentBlockType)
+  @IsEnum(AcademyContentBlockType)
+  type!: AcademyContentBlockType;
+
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
-  content?: string;
+  title?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  body?: string;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(1)
+  order!: number;
+}
+
+@InputType()
+export class UpdateAcademyContentBlockInput {
+  @Field(() => AcademyContentBlockType, { nullable: true })
+  @IsOptional()
+  @IsEnum(AcademyContentBlockType)
+  type?: AcademyContentBlockType;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  body?: string;
 
   @Field(() => Int, { nullable: true })
   @IsOptional()
@@ -181,8 +311,8 @@ export class UpdateAcademyLessonInput {
   @Min(1)
   order?: number;
 
-  @Field(() => Boolean, { nullable: true })
+  @Field(() => AcademyContentStatus, { nullable: true })
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsEnum(AcademyContentStatus)
+  status?: AcademyContentStatus;
 }

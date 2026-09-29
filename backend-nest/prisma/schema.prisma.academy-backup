@@ -69,73 +69,6 @@ enum WorkflowStatus {
   CANCELLED
 }
 
-enum AcademyContentBlockType {
-  TEXT
-  VIDEO
-  IMAGE
-  PDF
-  CALLOUT
-  TABLE
-  QUICK_CHECK
-}
-
-enum AcademyMediaProvider {
-  CLOUDINARY
-}
-
-enum AcademyMediaType {
-  IMAGE
-  VIDEO
-  PDF
-  DOCUMENT
-  AUDIO
-}
-
-enum AcademyContentStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
-enum AcademyQuestionType {
-  MULTIPLE_CHOICE
-  SINGLE_CHOICE
-  TRUE_FALSE
-  SHORT_ANSWER
-  LONG_ANSWER
-  FILE_UPLOAD
-  MATCHING
-  ORDERING
-  MULTI_SELECT
-  PRACTICAL_TASK
-}
-
-enum AcademyGradingMode {
-  AUTOMATIC
-  MANUAL
-}
-
-enum AcademyAssessmentAttemptStatus {
-  IN_PROGRESS
-  SUBMITTED
-  AWAITING_REVIEW
-  GRADED
-  CANCELLED
-}
-
-enum AcademyAttendanceStatus {
-  PRESENT
-  ABSENT
-  EXCUSED
-}
-
-enum AcademyReadinessStatus {
-  NOT_READY
-  UNDER_REVIEW
-  READY
-  NOT_APPROVED
-}
-
 model Role {
   id          String           @id @default(uuid()) @db.Uuid
   name        String           @unique
@@ -178,38 +111,34 @@ model UserPermissionOverride {
 }
 
 model User {
-  id                       String                       @id @default(uuid()) @db.Uuid
-  email                    String                       @unique
-  passwordHash             String
-  firstName                String
-  lastName                 String
-  phone                    String?
-  status                   UserStatus                   @default(PENDING)
-  emailVerifiedAt          DateTime?
-  roleId                   String                       @db.Uuid
-  lastLoginAt              DateTime?
-  createdAt                DateTime                     @default(now())
-  updatedAt                DateTime                     @updatedAt
-  role                     Role                         @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  overrides                UserPermissionOverride[]
-  sessions                 RefreshSession[]
-  emailTokens              EmailVerificationToken[]
-  resetTokens              PasswordResetToken[]
-  logins                   LoginHistory[]
-  academyRegistrations     AcademyRegistration[]
-  enrollments              AcademyEnrollment[]
-  completions              AcademyCompletion[]
-  academyAssessmentReviews AcademyAssessmentAttempt[]   @relation("AcademyAssessmentReviewers")
-  academyQuestionReviews   AcademyQuestionResponse[]    @relation("AcademyQuestionReviewers")
-  academyAttendanceRecords AcademyGatheringAttendance[] @relation("AcademyAttendanceRecorders")
-  academyReadinessReviews  AcademyReadiness[]           @relation("AcademyReadinessReviewers")
-  professional             ProfessionalProfile?
-  organizations            OrganizationUser[]
-  notifications            Notification[]
-  documents                Document[]
-  payments                 Payment[]
-  auditLogs                AuditLog[]
-  messages                 Message[]
+  id                   String                   @id @default(uuid()) @db.Uuid
+  email                String                   @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  phone                String?
+  status               UserStatus               @default(PENDING)
+  emailVerifiedAt      DateTime?
+  roleId               String                   @db.Uuid
+  lastLoginAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  role                 Role                     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  overrides            UserPermissionOverride[]
+  sessions             RefreshSession[]
+  emailTokens          EmailVerificationToken[]
+  resetTokens          PasswordResetToken[]
+  logins               LoginHistory[]
+  academyRegistrations AcademyRegistration[]
+  enrollments          AcademyEnrollment[]
+  completions          AcademyCompletion[]
+  professional         ProfessionalProfile?
+  organizations        OrganizationUser[]
+  notifications        Notification[]
+  documents            Document[]
+  payments             Payment[]
+  auditLogs            AuditLog[]
+  messages             Message[]
 
   @@index([roleId, status])
 }
@@ -259,12 +188,6 @@ model LoginHistory {
   @@index([email, createdAt])
 }
 
-/**
- * =========================================================
- * ACADEMY
- * =========================================================
- */
-
 model AcademyCourse {
   id            String                @id @default(uuid()) @db.Uuid
   code          String                @unique
@@ -272,279 +195,42 @@ model AcademyCourse {
   description   String?
   isActive      Boolean               @default(true)
   registrations AcademyRegistration[]
-  weeks         AcademyWeek[]
+  modules       AcademyModule[]
   enrollments   AcademyEnrollment[]
   assessments   AcademyAssessment[]
-  gatherings    AcademyGathering[]
   completions   AcademyCompletion[]
-  readiness     AcademyReadiness[]
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
 }
 
-model AcademyWeek {
-  id          String               @id @default(uuid()) @db.Uuid
-  courseId    String               @db.Uuid
+model AcademyModule {
+  id          String              @id @default(uuid()) @db.Uuid
+  courseId    String              @db.Uuid
   title       String
-  subtitle    String?
   description String?
   order       Int
-  status      AcademyContentStatus @default(DRAFT)
-  isActive    Boolean              @default(true)
-  course      AcademyCourse        @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  sessions    AcademySession[]
+  isActive    Boolean             @default(true)
+  course      AcademyCourse       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     AcademyLesson[]
+  assessments AcademyAssessment[]
 
   @@unique([courseId, order])
   @@index([courseId, isActive, order])
 }
 
-model AcademySession {
-  id            String                   @id @default(uuid()) @db.Uuid
-  weekId        String                   @db.Uuid
-  title         String
-  subtitle      String?
-  description   String?
-  order         Int
-  status        AcademyContentStatus     @default(DRAFT)
-  isActive      Boolean                  @default(true)
-  week          AcademyWeek              @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  contentBlocks AcademyContentBlock[]
-  progress      AcademySessionProgress[]
-  assessments   AcademyAssessment[]
-
-  @@unique([weekId, order])
-  @@index([weekId, isActive, order])
-}
-
-model AcademyContentBlock {
-  id            String                        @id @default(uuid()) @db.Uuid
-  sessionId     String                        @db.Uuid
-  type          AcademyContentBlockType
-  title         String?
-  textContent   String?
-  configuration Json?
-  order         Int
-  status        AcademyContentStatus          @default(DRAFT)
-  isActive      Boolean                       @default(true)
-  mediaId       String?                       @db.Uuid
-  questionId    String?                       @unique @db.Uuid
-  session       AcademySession                @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  media         AcademyMedia?                 @relation(fields: [mediaId], references: [id], onDelete: SetNull)
-  question      AcademyQuestion?              @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  progress      AcademyContentBlockProgress[]
-
-  @@unique([sessionId, order])
-  @@index([sessionId, status, order])
-  @@index([mediaId])
-}
-
-model AcademyMedia {
-  id            String                @id @default(uuid()) @db.Uuid
-  provider      AcademyMediaProvider
-  type          AcademyMediaType
-  publicId      String
-  url           String
-  thumbnailUrl  String?
-  fileName      String?
-  format        String?
-  duration      Int?
-  metadata      Json?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  contentBlocks AcademyContentBlock[]
-
-  @@index([provider, publicId])
-}
-
-model AcademyQuestion {
-  id                  String                      @id @default(uuid()) @db.Uuid
-  prompt              String
-  type                AcademyQuestionType
-  points              Decimal                     @default(1) @db.Decimal(6, 2)
-  gradingMode         AcademyGradingMode          @default(AUTOMATIC)
-  correctAnswer       Json?
-  explanation         String?
-  createdAt           DateTime                    @default(now())
-  updatedAt           DateTime                    @updatedAt
-  contentBlock        AcademyContentBlock?
-  options             AcademyQuestionOption[]
-  assessmentQuestions AcademyAssessmentQuestion[]
-  responses           AcademyQuestionResponse[]
-
-  @@index([type, gradingMode])
-}
-
-model AcademyQuestionOption {
-  id         String          @id @default(uuid()) @db.Uuid
-  questionId String          @db.Uuid
-  text       String
-  order      Int
-  isCorrect  Boolean         @default(false)
-  question   AcademyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@unique([questionId, order])
-  @@index([questionId])
-}
-
-model AcademySessionProgress {
-  id           String            @id @default(uuid()) @db.Uuid
-  enrollmentId String            @db.Uuid
-  sessionId    String            @db.Uuid
-  startedAt    DateTime?
-  completedAt  DateTime?
-  enrollment   AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  session      AcademySession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@unique([enrollmentId, sessionId])
-  @@index([enrollmentId, completedAt])
-}
-
-model AcademyContentBlockProgress {
-  id             String              @id @default(uuid()) @db.Uuid
-  enrollmentId   String              @db.Uuid
-  contentBlockId String              @db.Uuid
-  startedAt      DateTime?
-  completedAt    DateTime?
-  metadata       Json?
-  enrollment     AcademyEnrollment   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  contentBlock   AcademyContentBlock @relation(fields: [contentBlockId], references: [id], onDelete: Cascade)
-
-  @@unique([enrollmentId, contentBlockId])
-  @@index([enrollmentId, completedAt])
-}
-
-model AcademyAssessment {
-  id           String                      @id @default(uuid()) @db.Uuid
-  courseId     String                      @db.Uuid
-  sessionId    String?                     @db.Uuid
-  title        String
-  description  String?
-  maximumScore Decimal?                    @db.Decimal(6, 2)
-  passingScore Decimal?                    @db.Decimal(6, 2)
-  isRequired   Boolean                     @default(true)
-  status       AcademyContentStatus        @default(DRAFT)
-  isActive     Boolean                     @default(true)
-  course       AcademyCourse               @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  session      AcademySession?             @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  questions    AcademyAssessmentQuestion[]
-  attempts     AcademyAssessmentAttempt[]
-  createdAt    DateTime                    @default(now())
-  updatedAt    DateTime                    @updatedAt
-
-  @@index([courseId, isActive])
-  @@index([sessionId])
-}
-
-model AcademyAssessmentQuestion {
-  id           String            @id @default(uuid()) @db.Uuid
-  assessmentId String            @db.Uuid
-  questionId   String            @db.Uuid
-  order        Int
-  assessment   AcademyAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  question     AcademyQuestion   @relation(fields: [questionId], references: [id], onDelete: Restrict)
-
-  @@unique([assessmentId, order])
-  @@unique([assessmentId, questionId])
-  @@index([questionId])
-}
-
-model AcademyAssessmentAttempt {
-  id            String                         @id @default(uuid()) @db.Uuid
-  enrollmentId  String                         @db.Uuid
-  assessmentId  String                         @db.Uuid
-  attemptNumber Int
-  status        AcademyAssessmentAttemptStatus @default(IN_PROGRESS)
-  score         Decimal?                       @db.Decimal(6, 2)
-  maximumScore  Decimal?                       @db.Decimal(6, 2)
-  percentage    Decimal?                       @db.Decimal(6, 2)
-  passed        Boolean?
-  startedAt     DateTime                       @default(now())
-  submittedAt   DateTime?
-  gradedAt      DateTime?
-  reviewedById  String?                        @db.Uuid
-  feedback      String?
-  enrollment    AcademyEnrollment              @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  assessment    AcademyAssessment              @relation(fields: [assessmentId], references: [id], onDelete: Restrict)
-  responses     AcademyQuestionResponse[]
-  reviewedBy    User?                          @relation("AcademyAssessmentReviewers", fields: [reviewedById], references: [id], onDelete: SetNull)
-
-  @@unique([enrollmentId, assessmentId, attemptNumber])
-  @@index([enrollmentId, status])
-  @@index([assessmentId, status])
-  @@index([reviewedById])
-}
-
-model AcademyQuestionResponse {
-  id           String                   @id @default(uuid()) @db.Uuid
-  attemptId    String                   @db.Uuid
-  questionId   String                   @db.Uuid
-  answer       Json?
-  score        Decimal?                 @db.Decimal(6, 2)
-  isCorrect    Boolean?
-  feedback     String?
-  gradedAt     DateTime?
-  reviewedById String?                  @db.Uuid
-  attempt      AcademyAssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question     AcademyQuestion          @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  reviewedBy   User?                    @relation("AcademyQuestionReviewers", fields: [reviewedById], references: [id], onDelete: SetNull)
-
-  @@unique([attemptId, questionId])
-  @@index([questionId])
-  @@index([reviewedById])
-}
-
-model AcademyGathering {
-  id          String                       @id @default(uuid()) @db.Uuid
-  courseId    String                       @db.Uuid
+model AcademyLesson {
+  id          String                  @id @default(uuid()) @db.Uuid
+  moduleId    String                  @db.Uuid
   title       String
   description String?
-  startsAt    DateTime
-  endsAt      DateTime?
-  location    String?
-  isRequired  Boolean                      @default(true)
-  isActive    Boolean                      @default(true)
-  course      AcademyCourse                @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  attendance  AcademyGatheringAttendance[]
-  createdAt   DateTime                     @default(now())
-  updatedAt   DateTime                     @updatedAt
+  content     String?
+  order       Int
+  isActive    Boolean                 @default(true)
+  module      AcademyModule           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress    AcademyLessonProgress[]
 
-  @@index([courseId, startsAt])
-}
-
-model AcademyGatheringAttendance {
-  id           String                  @id @default(uuid()) @db.Uuid
-  gatheringId  String                  @db.Uuid
-  enrollmentId String                  @db.Uuid
-  status       AcademyAttendanceStatus
-  recordedById String?                 @db.Uuid
-  recordedAt   DateTime                @default(now())
-  notes        String?
-  gathering    AcademyGathering        @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
-  enrollment   AcademyEnrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  recordedBy   User?                   @relation("AcademyAttendanceRecorders", fields: [recordedById], references: [id], onDelete: SetNull)
-
-  @@unique([gatheringId, enrollmentId])
-  @@index([enrollmentId, status])
-  @@index([recordedById])
-}
-
-model AcademyReadiness {
-  id           String                 @id @default(uuid()) @db.Uuid
-  enrollmentId String                 @unique @db.Uuid
-  courseId     String                 @db.Uuid
-  status       AcademyReadinessStatus @default(NOT_READY)
-  score        Decimal?               @db.Decimal(6, 2)
-  reviewedById String?                @db.Uuid
-  reviewedAt   DateTime?
-  notes        String?
-  enrollment   AcademyEnrollment      @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  course       AcademyCourse          @relation(fields: [courseId], references: [id], onDelete: Restrict)
-  reviewedBy   User?                  @relation("AcademyReadinessReviewers", fields: [reviewedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
-
-  @@index([courseId, status])
-  @@index([reviewedById])
+  @@unique([moduleId, order])
+  @@index([moduleId, isActive, order])
 }
 
 model AcademyRegistration {
@@ -566,26 +252,70 @@ model AcademyRegistration {
 }
 
 model AcademyEnrollment {
-  id                   String                        @id @default(uuid()) @db.Uuid
-  userId               String                        @db.Uuid
-  courseId             String                        @db.Uuid
-  registrationId       String                        @unique @db.Uuid
-  status               EnrollmentStatus              @default(APPLIED)
-  enrolledAt           DateTime?
-  completedAt          DateTime?
-  progressPercent      Int                           @default(0)
-  user                 User                          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  course               AcademyCourse                 @relation(fields: [courseId], references: [id], onDelete: Restrict)
-  registration         AcademyRegistration           @relation(fields: [registrationId], references: [id], onDelete: Restrict)
-  sessionProgress      AcademySessionProgress[]
-  contentBlockProgress AcademyContentBlockProgress[]
-  assessmentAttempts   AcademyAssessmentAttempt[]
-  gatheringAttendance  AcademyGatheringAttendance[]
-  completion           AcademyCompletion?
-  readiness            AcademyReadiness?
+  id              String                  @id @default(uuid()) @db.Uuid
+  userId          String                  @db.Uuid
+  courseId        String                  @db.Uuid
+  registrationId  String                  @unique @db.Uuid
+  status          EnrollmentStatus        @default(APPLIED)
+  enrolledAt      DateTime?
+  completedAt     DateTime?
+  progressPercent Int                     @default(0)
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course          AcademyCourse           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  registration    AcademyRegistration     @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  lessonProgress  AcademyLessonProgress[]
+  results         AcademyResult[]
+  completion      AcademyCompletion?
 
   @@unique([userId, courseId])
   @@index([userId, status])
+}
+
+model AcademyLessonProgress {
+  id           String            @id @default(uuid()) @db.Uuid
+  enrollmentId String            @db.Uuid
+  lessonId     String            @db.Uuid
+  completedAt  DateTime?
+  enrollment   AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson       AcademyLesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+  @@index([enrollmentId, completedAt])
+}
+
+model AcademyAssessment {
+  id           String          @id @default(uuid()) @db.Uuid
+  courseId     String          @db.Uuid
+  moduleId     String?         @db.Uuid
+  title        String
+  description  String?
+  maximumScore Decimal?        @db.Decimal(6, 2)
+  passingScore Decimal?        @db.Decimal(6, 2)
+  isRequired   Boolean         @default(true)
+  isActive     Boolean         @default(true)
+  course       AcademyCourse   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module       AcademyModule?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  results      AcademyResult[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([courseId, isActive])
+  @@index([moduleId])
+}
+
+model AcademyResult {
+  id           String            @id @default(uuid()) @db.Uuid
+  enrollmentId String            @db.Uuid
+  assessmentId String            @db.Uuid
+  score        Decimal?          @db.Decimal(6, 2)
+  maximumScore Decimal?          @db.Decimal(6, 2)
+  passed       Boolean           @default(false)
+  completedAt  DateTime?
+  enrollment   AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  assessment   AcademyAssessment @relation(fields: [assessmentId], references: [id], onDelete: Restrict)
+
+  @@unique([enrollmentId, assessmentId])
+  @@index([enrollmentId, passed])
 }
 
 model AcademyCompletion {
@@ -602,12 +332,6 @@ model AcademyCompletion {
   course                AcademyCourse     @relation(fields: [courseId], references: [id], onDelete: Restrict)
   enrollment            AcademyEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
 }
-
-/**
- * =========================================================
- * PROFESSIONALS
- * =========================================================
- */
 
 model ProfessionalCategory {
   id       String                @id @default(uuid()) @db.Uuid
@@ -800,12 +524,6 @@ model ReadinessApproval {
   @@index([professionalId, active])
 }
 
-/**
- * =========================================================
- * CLIENTS / TALENT
- * =========================================================
- */
-
 model ClientOrganization {
   id                String             @id @default(uuid()) @db.Uuid
   organizationCode  String             @unique
@@ -935,12 +653,6 @@ model SupportCase {
   priority     String         @default("NORMAL")
   engagement   Engagement     @relation(fields: [engagementId], references: [id], onDelete: Restrict)
 }
-
-/**
- * =========================================================
- * COMMUNICATION / SYSTEM
- * =========================================================
- */
 
 model Conversation {
   id        String    @id @default(uuid()) @db.Uuid

@@ -6,15 +6,18 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/permissions.decorator';
 import { AcademyService } from './academy.service';
 import {
+  AcademyContentBlock,
   AcademyCourse,
-  AcademyLesson,
-  AcademyModule,
+  AcademySession,
+  AcademyWeek,
+  CreateAcademyContentBlockInput,
   CreateAcademyCourseInput,
-  CreateAcademyLessonInput,
-  CreateAcademyModuleInput,
+  CreateAcademySessionInput,
+  CreateAcademyWeekInput,
+  UpdateAcademyContentBlockInput,
   UpdateAcademyCourseInput,
-  UpdateAcademyLessonInput,
-  UpdateAcademyModuleInput,
+  UpdateAcademySessionInput,
+  UpdateAcademyWeekInput,
 } from './academy.types';
 
 @Resolver(() => AcademyCourse)
@@ -52,43 +55,63 @@ export class AcademyResolver {
     return this.academy.updateCourse(id, input);
   }
 
-  @Mutation(() => AcademyModule)
+  @Mutation(() => AcademyWeek)
   @UseGuards(GqlAuthGuard, PermissionsGuard)
   @RequirePermissions('academy.manage')
-  createAcademyModule(
+  createAcademyWeek(
     @Args('courseId', { type: () => ID }) courseId: string,
-    @Args('input') input: CreateAcademyModuleInput,
+    @Args('input') input: CreateAcademyWeekInput,
   ) {
-    return this.academy.createModule(courseId, input);
+    return this.academy.createWeek(courseId, input);
   }
 
-  @Mutation(() => AcademyModule)
+  @Mutation(() => AcademyWeek)
   @UseGuards(GqlAuthGuard, PermissionsGuard)
   @RequirePermissions('academy.manage')
-  updateAcademyModule(
+  updateAcademyWeek(
     @Args('id', { type: () => ID }) id: string,
-    @Args('input') input: UpdateAcademyModuleInput,
+    @Args('input') input: UpdateAcademyWeekInput,
   ) {
-    return this.academy.updateModule(id, input);
+    return this.academy.updateWeek(id, input);
   }
 
-  @Mutation(() => AcademyLesson)
+  @Mutation(() => AcademySession)
   @UseGuards(GqlAuthGuard, PermissionsGuard)
   @RequirePermissions('academy.manage')
-  createAcademyLesson(
-    @Args('moduleId', { type: () => ID }) moduleId: string,
-    @Args('input') input: CreateAcademyLessonInput,
+  createAcademySession(
+    @Args('weekId', { type: () => ID }) weekId: string,
+    @Args('input') input: CreateAcademySessionInput,
   ) {
-    return this.academy.createLesson(moduleId, input);
+    return this.academy.createSession(weekId, input);
   }
 
-  @Mutation(() => AcademyLesson)
+  @Mutation(() => AcademySession)
   @UseGuards(GqlAuthGuard, PermissionsGuard)
   @RequirePermissions('academy.manage')
-  updateAcademyLesson(
+  updateAcademySession(
     @Args('id', { type: () => ID }) id: string,
-    @Args('input') input: UpdateAcademyLessonInput,
+    @Args('input') input: UpdateAcademySessionInput,
   ) {
-    return this.academy.updateLesson(id, input);
+    return this.academy.updateSession(id, input);
+  }
+
+  @Mutation(() => AcademyContentBlock)
+  @UseGuards(GqlAuthGuard, PermissionsGuard)
+  @RequirePermissions('academy.manage')
+  createAcademyContentBlock(
+    @Args('sessionId', { type: () => ID }) sessionId: string,
+    @Args('input') input: CreateAcademyContentBlockInput,
+  ) {
+    return this.academy.createContentBlock(sessionId, input);
+  }
+
+  @Mutation(() => AcademyContentBlock)
+  @UseGuards(GqlAuthGuard, PermissionsGuard)
+  @RequirePermissions('academy.manage')
+  updateAcademyContentBlock(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdateAcademyContentBlockInput,
+  ) {
+    return this.academy.updateContentBlock(id, input);
   }
 }
