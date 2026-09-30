@@ -79,8 +79,17 @@ enum AcademyContentBlockType {
   QUICK_CHECK
 }
 
+enum AcademyMediaSourceType {
+  UPLOADED
+  EXTERNAL
+}
+
 enum AcademyMediaProvider {
   CLOUDINARY
+  AMAZON_S3
+  YOUTUBE
+  VIMEO
+  OTHER
 }
 
 enum AcademyMediaType {
@@ -339,18 +348,19 @@ model AcademyContentBlock {
 }
 
 model AcademyMedia {
-  id            String                @id @default(uuid()) @db.Uuid
+  id            String                 @id @default(uuid()) @db.Uuid
+  sourceType    AcademyMediaSourceType
   provider      AcademyMediaProvider
   type          AcademyMediaType
-  publicId      String
+  publicId      String?
   url           String
   thumbnailUrl  String?
   fileName      String?
   format        String?
   duration      Int?
   metadata      Json?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
   contentBlocks AcademyContentBlock[]
 
   @@index([provider, publicId])

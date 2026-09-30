@@ -9,13 +9,18 @@ import {
   ClipboardCheck,
   FileText,
   GraduationCap,
+  Image as ImageIcon,
   Pencil,
   Plus,
   RefreshCw,
+  Table2,
+  Type,
+  Upload,
   Users,
+  Video,
   X,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import PortalDashboard from "../PortalDashboard";
 import { useAuth } from "../../features/auth/AuthProvider";
 
@@ -29,17 +34,60 @@ const ACADEMY_COURSES_QUERY = gql`
       isActive
       createdAt
       updatedAt
-      modules {
+      weeks {
         id
         title
+        subtitle
         description
         order
-        lessons {
+        status
+        isActive
+        sessions {
           id
           title
+          subtitle
           description
-          content
           order
+          status
+          isActive
+          contentBlocks {
+            id
+            type
+            title
+            textContent
+            configuration
+            order
+            status
+            isActive
+            media {
+              id
+              sourceType
+              provider
+              type
+              publicId
+              url
+              thumbnailUrl
+              fileName
+              format
+              duration
+              metadata
+            }
+            question {
+              id
+              prompt
+              type
+              points
+              gradingMode
+              correctAnswer
+              explanation
+              options {
+                id
+                text
+                order
+                isCorrect
+              }
+            }
+          }
         }
       }
     }
@@ -56,17 +104,32 @@ const CREATE_ACADEMY_COURSE_MUTATION = gql`
       isActive
       createdAt
       updatedAt
-      modules {
+      weeks {
         id
         title
+        subtitle
         description
         order
-        lessons {
+        status
+        isActive
+        sessions {
           id
           title
+          subtitle
           description
-          content
           order
+          status
+          isActive
+          contentBlocks {
+            id
+            type
+            title
+            textContent
+            configuration
+            order
+            status
+            isActive
+          }
         }
       }
     }
@@ -83,103 +146,322 @@ const UPDATE_ACADEMY_COURSE_MUTATION = gql`
       isActive
       createdAt
       updatedAt
-      modules {
+      weeks {
         id
         title
+        subtitle
         description
         order
-        lessons {
+        status
+        isActive
+        sessions {
           id
           title
+          subtitle
           description
-          content
           order
+          status
+          isActive
+          contentBlocks {
+            id
+            type
+            title
+            textContent
+            configuration
+            order
+            status
+            isActive
+          }
         }
       }
     }
   }
 `;
 
-const CREATE_ACADEMY_MODULE_MUTATION = gql`
-  mutation CreateAcademyModule(
-    $courseId: ID!
-    $input: CreateAcademyModuleInput!
-  ) {
-    createAcademyModule(courseId: $courseId, input: $input) {
+const CREATE_ACADEMY_WEEK_MUTATION = gql`
+  mutation CreateAcademyWeek($courseId: ID!, $input: CreateAcademyWeekInput!) {
+    createAcademyWeek(courseId: $courseId, input: $input) {
       id
       title
+      subtitle
       description
       order
-      lessons {
+      status
+      isActive
+      sessions {
         id
         title
+        subtitle
         description
-        content
         order
+        status
+        isActive
+        contentBlocks {
+          id
+          type
+          title
+          textContent
+          configuration
+          order
+          status
+          isActive
+        }
       }
     }
   }
 `;
 
-const UPDATE_ACADEMY_MODULE_MUTATION = gql`
-  mutation UpdateAcademyModule($id: ID!, $input: UpdateAcademyModuleInput!) {
-    updateAcademyModule(id: $id, input: $input) {
+const UPDATE_ACADEMY_WEEK_MUTATION = gql`
+  mutation UpdateAcademyWeek($id: ID!, $input: UpdateAcademyWeekInput!) {
+    updateAcademyWeek(id: $id, input: $input) {
       id
       title
+      subtitle
       description
       order
-      lessons {
+      status
+      isActive
+      sessions {
         id
         title
+        subtitle
         description
-        content
         order
+        status
+        isActive
+        contentBlocks {
+          id
+          type
+          title
+          textContent
+          order
+          status
+          isActive
+        }
       }
     }
   }
 `;
 
-const CREATE_ACADEMY_LESSON_MUTATION = gql`
-  mutation CreateAcademyLesson(
-    $moduleId: ID!
-    $input: CreateAcademyLessonInput!
+const CREATE_ACADEMY_SESSION_MUTATION = gql`
+  mutation CreateAcademySession(
+    $weekId: ID!
+    $input: CreateAcademySessionInput!
   ) {
-    createAcademyLesson(moduleId: $moduleId, input: $input) {
+    createAcademySession(weekId: $weekId, input: $input) {
       id
       title
+      subtitle
       description
-      content
       order
+      status
+      isActive
+      contentBlocks {
+        id
+        type
+        title
+        textContent
+        configuration
+        order
+        status
+        isActive
+      }
     }
   }
 `;
 
-const UPDATE_ACADEMY_LESSON_MUTATION = gql`
-  mutation UpdateAcademyLesson($id: ID!, $input: UpdateAcademyLessonInput!) {
-    updateAcademyLesson(id: $id, input: $input) {
+const UPDATE_ACADEMY_SESSION_MUTATION = gql`
+  mutation UpdateAcademySession($id: ID!, $input: UpdateAcademySessionInput!) {
+    updateAcademySession(id: $id, input: $input) {
       id
       title
+      subtitle
       description
-      content
       order
+      status
+      isActive
+      contentBlocks {
+        id
+        type
+        title
+        textContent
+        configuration
+        order
+        status
+        isActive
+      }
     }
   }
 `;
 
-type AcademyLesson = {
+const CREATE_ACADEMY_CONTENT_BLOCK_MUTATION = gql`
+  mutation CreateAcademyContentBlock(
+    $sessionId: ID!
+    $input: CreateAcademyContentBlockInput!
+  ) {
+    createAcademyContentBlock(sessionId: $sessionId, input: $input) {
+      id
+      type
+      title
+      textContent
+      configuration
+      order
+      status
+      isActive
+      media {
+        id
+        sourceType
+        provider
+        type
+        publicId
+        url
+        thumbnailUrl
+        fileName
+        format
+        duration
+        metadata
+      }
+      question {
+        id
+        prompt
+        type
+        points
+        gradingMode
+        correctAnswer
+        explanation
+        options {
+          id
+          text
+          order
+          isCorrect
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_ACADEMY_CONTENT_BLOCK_MUTATION = gql`
+  mutation UpdateAcademyContentBlock(
+    $id: ID!
+    $input: UpdateAcademyContentBlockInput!
+  ) {
+    updateAcademyContentBlock(id: $id, input: $input) {
+      id
+      type
+      title
+      textContent
+      configuration
+      order
+      status
+      isActive
+      media {
+        id
+        sourceType
+        provider
+        type
+        publicId
+        url
+        thumbnailUrl
+        fileName
+        format
+        duration
+        metadata
+      }
+      question {
+        id
+        prompt
+        type
+        points
+        gradingMode
+        correctAnswer
+        explanation
+        options {
+          id
+          text
+          order
+          isCorrect
+        }
+      }
+    }
+  }
+`;
+
+type AcademyContentBlockType =
+  | "TEXT"
+  | "VIDEO"
+  | "IMAGE"
+  | "PDF"
+  | "CALLOUT"
+  | "TABLE"
+  | "QUICK_CHECK";
+
+type AcademyContentStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+type AcademyMedia = {
   id: string;
-  title: string;
-  description?: string | null;
-  content?: string | null;
-  order: number;
+  sourceType: string;
+  provider: string;
+  type: string;
+  publicId?: string | null;
+  url: string;
+  thumbnailUrl?: string | null;
+  fileName?: string | null;
+  format?: string | null;
+  duration?: number | null;
+  metadata?: unknown;
 };
 
-type AcademyModule = {
+type AcademyQuestionOption = {
+  id: string;
+  text: string;
+  order: number;
+  isCorrect: boolean;
+};
+
+type AcademyQuestion = {
+  id: string;
+  prompt: string;
+  type: string;
+  points: number;
+  gradingMode: string;
+  correctAnswer?: unknown;
+  explanation?: string | null;
+  options: AcademyQuestionOption[];
+};
+
+type AcademyContentBlock = {
+  id: string;
+  type: AcademyContentBlockType;
+  title?: string | null;
+  textContent?: string | null;
+  configuration?: unknown;
+  order: number;
+  status: AcademyContentStatus;
+  isActive: boolean;
+  media?: AcademyMedia | null;
+  question?: AcademyQuestion | null;
+};
+
+type AcademySession = {
   id: string;
   title: string;
+  subtitle?: string | null;
   description?: string | null;
   order: number;
-  lessons: AcademyLesson[];
+  status: AcademyContentStatus;
+  isActive: boolean;
+  contentBlocks: AcademyContentBlock[];
+};
+
+type AcademyWeek = {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  description?: string | null;
+  order: number;
+  status: AcademyContentStatus;
+  isActive: boolean;
+  sessions: AcademySession[];
 };
 
 type AcademyCourse = {
@@ -190,7 +472,7 @@ type AcademyCourse = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  modules: AcademyModule[];
+  weeks: AcademyWeek[];
 };
 
 type AcademyCoursesData = {
@@ -205,21 +487,32 @@ type UpdateAcademyCourseData = {
   updateAcademyCourse: AcademyCourse;
 };
 
-type CreateAcademyModuleData = {
-  createAcademyModule: AcademyModule;
+type CreateAcademyWeekData = {
+  createAcademyWeek: AcademyWeek;
 };
 
-type UpdateAcademyModuleData = {
-  updateAcademyModule: AcademyModule;
+type UpdateAcademyWeekData = {
+  updateAcademyWeek: AcademyWeek;
 };
 
-type CreateAcademyLessonData = {
-  createAcademyLesson: AcademyLesson;
+type CreateAcademySessionData = {
+  createAcademySession: AcademySession;
 };
 
-type UpdateAcademyLessonData = {
-  updateAcademyLesson: AcademyLesson;
+type UpdateAcademySessionData = {
+  updateAcademySession: AcademySession;
 };
+
+type CreateAcademyContentBlockData = {
+  createAcademyContentBlock: AcademyContentBlock;
+};
+
+type UpdateAcademyContentBlockData = {
+  updateAcademyContentBlock: AcademyContentBlock;
+};
+
+const inputClassName =
+  "w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100";
 
 function StatCard({
   icon: Icon,
@@ -259,11 +552,11 @@ function Modal({
   title: string;
   eyebrow: string;
   onClose: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-[#003F8E]">
@@ -383,7 +676,7 @@ function CourseForm({
               value={code}
               onChange={(event) => setCode(event.target.value)}
               placeholder="KATEL-001"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+              className={inputClassName}
             />
           </div>
         )}
@@ -400,8 +693,8 @@ function CourseForm({
             id="academy-course-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Katel Course"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            placeholder="Katel Career Foundation"
+            className={inputClassName}
           />
         </div>
 
@@ -419,7 +712,7 @@ function CourseForm({
             onChange={(event) => setDescription(event.target.value)}
             rows={5}
             placeholder="Describe what learners will gain from this course."
-            className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            className={`${inputClassName} resize-none`}
           />
         </div>
 
@@ -461,33 +754,32 @@ function CourseForm({
   );
 }
 
-function ModuleForm({
+function WeekForm({
   course,
-  academyModule,
+  week,
   onClose,
   onSaved,
 }: {
   course: AcademyCourse;
-  academyModule?: AcademyModule | null;
+  week?: AcademyWeek | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const isEditing = Boolean(academyModule);
+  const isEditing = Boolean(week);
 
-  const [title, setTitle] = useState(academyModule?.title ?? "");
-  const [description, setDescription] = useState(
-    academyModule?.description ?? "",
-  );
+  const [title, setTitle] = useState(week?.title ?? "");
+  const [subtitle, setSubtitle] = useState(week?.subtitle ?? "");
+  const [description, setDescription] = useState(week?.description ?? "");
   const [order, setOrder] = useState(
-    String(academyModule?.order ?? course.modules.length + 1),
+    String(week?.order ?? course.weeks.length + 1),
   );
   const [formError, setFormError] = useState("");
 
-  const [createModule, { loading: creating }] =
-    useMutation<CreateAcademyModuleData>(CREATE_ACADEMY_MODULE_MUTATION);
+  const [createWeek, { loading: creating }] =
+    useMutation<CreateAcademyWeekData>(CREATE_ACADEMY_WEEK_MUTATION);
 
-  const [updateModule, { loading: updating }] =
-    useMutation<UpdateAcademyModuleData>(UPDATE_ACADEMY_MODULE_MUTATION);
+  const [updateWeek, { loading: updating }] =
+    useMutation<UpdateAcademyWeekData>(UPDATE_ACADEMY_WEEK_MUTATION);
 
   const saving = creating || updating;
 
@@ -498,34 +790,37 @@ function ModuleForm({
     const numericOrder = Number(order);
 
     if (!title.trim()) {
-      setFormError("Module title is required.");
+      setFormError("Week title is required.");
       return;
     }
 
     if (!Number.isInteger(numericOrder) || numericOrder < 1) {
-      setFormError("Module order must be a whole number starting at 1.");
+      setFormError("Week order must be a whole number starting at 1.");
       return;
     }
 
     try {
-      if (isEditing && academyModule) {
-        await updateModule({
+      if (isEditing && week) {
+        await updateWeek({
           variables: {
-            id: academyModule.id,
+            id: week.id,
             input: {
               title: title.trim(),
+              subtitle: subtitle.trim() || null,
               description: description.trim() || null,
               order: numericOrder,
-              isActive: true,
+              status: week.status,
+              isActive: week.isActive,
             },
           },
         });
       } else {
-        await createModule({
+        await createWeek({
           variables: {
             courseId: course.id,
             input: {
               title: title.trim(),
+              subtitle: subtitle.trim() || null,
               description: description.trim() || null,
               order: numericOrder,
             },
@@ -537,9 +832,7 @@ function ModuleForm({
       onClose();
     } catch (error) {
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "The module could not be saved.",
+        error instanceof Error ? error.message : "The week could not be saved.",
       );
     }
   };
@@ -547,64 +840,77 @@ function ModuleForm({
   return (
     <Modal
       eyebrow={course.title}
-      title={isEditing ? "Edit module" : "Add module"}
+      title={isEditing ? "Edit week" : "Add week"}
       onClose={onClose}
     >
       <form onSubmit={submit} className="space-y-5 p-6">
         <div>
           <label
-            htmlFor="academy-module-title"
+            htmlFor="academy-week-title"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
-            Module title
+            Week title
           </label>
 
           <input
-            id="academy-module-title"
+            id="academy-week-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Career Foundation"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            placeholder="Week 1: Career Foundation"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
-            htmlFor="academy-module-order"
+            htmlFor="academy-week-subtitle"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
-            Module order
+            Subtitle
           </label>
 
           <input
-            id="academy-module-order"
+            id="academy-week-subtitle"
+            value={subtitle}
+            onChange={(event) => setSubtitle(event.target.value)}
+            placeholder="Understanding yourself, work and opportunity"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="academy-week-order"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Week order
+          </label>
+
+          <input
+            id="academy-week-order"
             type="number"
             min="1"
             value={order}
             onChange={(event) => setOrder(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            className={inputClassName}
           />
-
-          <p className="mt-2 text-xs text-slate-500">
-            This determines where the module appears in the course.
-          </p>
         </div>
 
         <div>
           <label
-            htmlFor="academy-module-description"
+            htmlFor="academy-week-description"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
             Description
           </label>
 
           <textarea
-            id="academy-module-description"
+            id="academy-week-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={4}
-            placeholder="What will learners learn in this module?"
-            className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            placeholder="Describe the purpose of this week."
+            className={`${inputClassName} resize-none`}
           />
         </div>
 
@@ -636,7 +942,7 @@ function ModuleForm({
             ) : (
               <>
                 <CheckCircle2 size={16} />
-                {isEditing ? "Save module" : "Add module"}
+                {isEditing ? "Save week" : "Add week"}
               </>
             )}
           </button>
@@ -646,32 +952,32 @@ function ModuleForm({
   );
 }
 
-function LessonForm({
-  academyModule,
-  lesson,
+function SessionForm({
+  week,
+  session,
   onClose,
   onSaved,
 }: {
-  academyModule: AcademyModule;
-  lesson?: AcademyLesson | null;
+  week: AcademyWeek;
+  session?: AcademySession | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const isEditing = Boolean(lesson);
+  const isEditing = Boolean(session);
 
-  const [title, setTitle] = useState(lesson?.title ?? "");
-  const [description, setDescription] = useState(lesson?.description ?? "");
-  const [content, setContent] = useState(lesson?.content ?? "");
+  const [title, setTitle] = useState(session?.title ?? "");
+  const [subtitle, setSubtitle] = useState(session?.subtitle ?? "");
+  const [description, setDescription] = useState(session?.description ?? "");
   const [order, setOrder] = useState(
-    String(lesson?.order ?? academyModule.lessons.length + 1),
+    String(session?.order ?? week.sessions.length + 1),
   );
   const [formError, setFormError] = useState("");
 
-  const [createLesson, { loading: creating }] =
-    useMutation<CreateAcademyLessonData>(CREATE_ACADEMY_LESSON_MUTATION);
+  const [createSession, { loading: creating }] =
+    useMutation<CreateAcademySessionData>(CREATE_ACADEMY_SESSION_MUTATION);
 
-  const [updateLesson, { loading: updating }] =
-    useMutation<UpdateAcademyLessonData>(UPDATE_ACADEMY_LESSON_MUTATION);
+  const [updateSession, { loading: updating }] =
+    useMutation<UpdateAcademySessionData>(UPDATE_ACADEMY_SESSION_MUTATION);
 
   const saving = creating || updating;
 
@@ -682,37 +988,38 @@ function LessonForm({
     const numericOrder = Number(order);
 
     if (!title.trim()) {
-      setFormError("Lesson title is required.");
+      setFormError("Session title is required.");
       return;
     }
 
     if (!Number.isInteger(numericOrder) || numericOrder < 1) {
-      setFormError("Lesson order must be a whole number starting at 1.");
+      setFormError("Session order must be a whole number starting at 1.");
       return;
     }
 
     try {
-      if (isEditing && lesson) {
-        await updateLesson({
+      if (isEditing && session) {
+        await updateSession({
           variables: {
-            id: lesson.id,
+            id: session.id,
             input: {
               title: title.trim(),
+              subtitle: subtitle.trim() || null,
               description: description.trim() || null,
-              content: content.trim() || null,
               order: numericOrder,
-              isActive: true,
+              status: session.status,
+              isActive: session.isActive,
             },
           },
         });
       } else {
-        await createLesson({
+        await createSession({
           variables: {
-            moduleId: academyModule.id,
+            weekId: week.id,
             input: {
               title: title.trim(),
+              subtitle: subtitle.trim() || null,
               description: description.trim() || null,
-              content: content.trim() || null,
               order: numericOrder,
             },
           },
@@ -725,91 +1032,459 @@ function LessonForm({
       setFormError(
         error instanceof Error
           ? error.message
-          : "The lesson could not be saved.",
+          : "The session could not be saved.",
       );
     }
   };
 
   return (
     <Modal
-      eyebrow={academyModule.title}
-      title={isEditing ? "Edit lesson" : "Add lesson"}
+      eyebrow={week.title}
+      title={isEditing ? "Edit session" : "Add session"}
       onClose={onClose}
     >
       <form onSubmit={submit} className="space-y-5 p-6">
         <div>
           <label
-            htmlFor="academy-lesson-title"
+            htmlFor="academy-session-title"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
-            Lesson title
+            Session title
           </label>
 
           <input
-            id="academy-lesson-title"
+            id="academy-session-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Understanding Your Career Direction"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            placeholder="Session 1: Discovering Your Strengths"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
-            htmlFor="academy-lesson-order"
+            htmlFor="academy-session-subtitle"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
-            Lesson order
+            Subtitle
           </label>
 
           <input
-            id="academy-lesson-order"
+            id="academy-session-subtitle"
+            value={subtitle}
+            onChange={(event) => setSubtitle(event.target.value)}
+            placeholder="Identify the capabilities you already have"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="academy-session-order"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Session order
+          </label>
+
+          <input
+            id="academy-session-order"
             type="number"
             min="1"
             value={order}
             onChange={(event) => setOrder(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
-            htmlFor="academy-lesson-description"
+            htmlFor="academy-session-description"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
             Description
           </label>
 
           <textarea
-            id="academy-lesson-description"
+            id="academy-session-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            rows={3}
-            placeholder="Briefly describe this lesson."
-            className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            rows={4}
+            placeholder="Describe what learners should accomplish in this session."
+            className={`${inputClassName} resize-none`}
           />
+        </div>
+
+        {formError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {formError}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-xl bg-[#003F8E] px-5 py-3 text-sm font-semibold text-white hover:bg-[#003477] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? (
+              <>
+                <RefreshCw size={16} className="animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={16} />
+                {isEditing ? "Save session" : "Add session"}
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ContentBlockForm({
+  session,
+  block,
+  onClose,
+  onSaved,
+}: {
+  session: AcademySession;
+  block?: AcademyContentBlock | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEditing = Boolean(block);
+
+  const [type, setType] = useState<AcademyContentBlockType>(
+    block?.type ?? "TEXT",
+  );
+  const [title, setTitle] = useState(block?.title ?? "");
+  const [textContent, setTextContent] = useState(block?.textContent ?? "");
+  const [order, setOrder] = useState(
+    String(block?.order ?? session.contentBlocks.length + 1),
+  );
+  const [status, setStatus] = useState<AcademyContentStatus>(
+    block?.status ?? "DRAFT",
+  );
+  const [configuration, setConfiguration] = useState(
+    block?.configuration ? JSON.stringify(block.configuration, null, 2) : "",
+  );
+  const [mediaId, setMediaId] = useState(block?.media?.id ?? "");
+  const [questionId, setQuestionId] = useState(block?.question?.id ?? "");
+  const [formError, setFormError] = useState("");
+
+  const [createBlock, { loading: creating }] =
+    useMutation<CreateAcademyContentBlockData>(
+      CREATE_ACADEMY_CONTENT_BLOCK_MUTATION,
+    );
+
+  const [updateBlock, { loading: updating }] =
+    useMutation<UpdateAcademyContentBlockData>(
+      UPDATE_ACADEMY_CONTENT_BLOCK_MUTATION,
+    );
+
+  const saving = creating || updating;
+
+  const needsText = type === "TEXT" || type === "CALLOUT";
+  const needsMedia = type === "VIDEO" || type === "IMAGE" || type === "PDF";
+  const needsQuestion = type === "QUICK_CHECK";
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError("");
+
+    const numericOrder = Number(order);
+
+    if (!Number.isInteger(numericOrder) || numericOrder < 1) {
+      setFormError("Content block order must be a whole number starting at 1.");
+      return;
+    }
+
+    if (!title.trim()) {
+      setFormError("Content block title is required.");
+      return;
+    }
+
+    if (needsText && !textContent.trim()) {
+      setFormError("This content block requires text content.");
+      return;
+    }
+
+    if (needsMedia && !mediaId.trim()) {
+      setFormError(
+        "This content block requires a media ID. Media management will be connected next.",
+      );
+      return;
+    }
+
+    if (needsQuestion && !questionId.trim()) {
+      setFormError(
+        "This Quick Check requires a question ID. Question management will be connected next.",
+      );
+      return;
+    }
+
+    let parsedConfiguration: unknown = undefined;
+
+    if (configuration.trim()) {
+      try {
+        parsedConfiguration = JSON.parse(configuration);
+      } catch {
+        setFormError("Configuration must contain valid JSON.");
+        return;
+      }
+    }
+
+    const input = {
+      type,
+      title: title.trim(),
+      textContent: textContent.trim() || null,
+      configuration: parsedConfiguration,
+      order: numericOrder,
+      status,
+      isActive: block?.isActive ?? true,
+      mediaId: mediaId.trim() || null,
+      questionId: questionId.trim() || null,
+    };
+
+    try {
+      if (isEditing && block) {
+        await updateBlock({
+          variables: {
+            id: block.id,
+            input,
+          },
+        });
+      } else {
+        await createBlock({
+          variables: {
+            sessionId: session.id,
+            input,
+          },
+        });
+      }
+
+      onSaved();
+      onClose();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "The content block could not be saved.",
+      );
+    }
+  };
+
+  return (
+    <Modal
+      eyebrow={session.title}
+      title={isEditing ? "Edit content block" : "Add content block"}
+      onClose={onClose}
+    >
+      <form onSubmit={submit} className="space-y-5 p-6">
+        <div>
+          <label
+            htmlFor="academy-content-type"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Content type
+          </label>
+
+          <select
+            id="academy-content-type"
+            value={type}
+            onChange={(event) =>
+              setType(event.target.value as AcademyContentBlockType)
+            }
+            className={inputClassName}
+          >
+            <option value="TEXT">Text</option>
+            <option value="VIDEO">Video</option>
+            <option value="IMAGE">Image</option>
+            <option value="PDF">PDF</option>
+            <option value="CALLOUT">Callout</option>
+            <option value="TABLE">Table</option>
+            <option value="QUICK_CHECK">Quick Check</option>
+          </select>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="academy-content-title"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Title
+            </label>
+
+            <input
+              id="academy-content-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Understanding your strengths"
+              className={inputClassName}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="academy-content-order"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Order
+            </label>
+
+            <input
+              id="academy-content-order"
+              type="number"
+              min="1"
+              value={order}
+              onChange={(event) => setOrder(event.target.value)}
+              className={inputClassName}
+            />
+          </div>
         </div>
 
         <div>
           <label
-            htmlFor="academy-lesson-content"
+            htmlFor="academy-content-status"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
-            Lesson content
+            Status
+          </label>
+
+          <select
+            id="academy-content-status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as AcademyContentStatus)
+            }
+            className={inputClassName}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+        </div>
+
+        {(needsText || type === "TABLE") && (
+          <div>
+            <label
+              htmlFor="academy-content-text"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              {type === "TABLE" ? "Table content" : "Content"}
+            </label>
+
+            <textarea
+              id="academy-content-text"
+              value={textContent}
+              onChange={(event) => setTextContent(event.target.value)}
+              rows={type === "TABLE" ? 8 : 10}
+              placeholder={
+                type === "TABLE"
+                  ? "Enter table content or table markup/configuration."
+                  : "Enter the learning content learners should read."
+              }
+              className={`${inputClassName} resize-y leading-6`}
+            />
+          </div>
+        )}
+
+        {needsMedia && (
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-white p-2 text-[#003F8E]">
+                {type === "VIDEO" ? (
+                  <Video size={19} />
+                ) : type === "IMAGE" ? (
+                  <ImageIcon size={19} />
+                ) : (
+                  <Upload size={19} />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">
+                  Attach existing media
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Enter the ID of an Academy media record. Media creation and
+                  Cloudinary upload management will be connected through the
+                  backend media workflow.
+                </p>
+
+                <input
+                  value={mediaId}
+                  onChange={(event) => setMediaId(event.target.value)}
+                  placeholder="Media UUID"
+                  className={`mt-3 ${inputClassName}`}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {needsQuestion && (
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-white p-2 text-amber-700">
+                <ClipboardCheck size={19} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">
+                  Attach existing question
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Enter the ID of an Academy question. Question authoring will
+                  be connected through the assessment/question workflow.
+                </p>
+
+                <input
+                  value={questionId}
+                  onChange={(event) => setQuestionId(event.target.value)}
+                  placeholder="Question UUID"
+                  className={`mt-3 ${inputClassName}`}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label
+            htmlFor="academy-content-configuration"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Configuration JSON
           </label>
 
           <textarea
-            id="academy-lesson-content"
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            rows={10}
-            placeholder="Enter the lesson content that learners will read and study."
-            className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-blue-100"
+            id="academy-content-configuration"
+            value={configuration}
+            onChange={(event) => setConfiguration(event.target.value)}
+            rows={7}
+            placeholder={`{
+  "variant": "info"
+}`}
+            className={`${inputClassName} resize-y font-mono text-xs leading-5`}
           />
 
           <p className="mt-2 text-xs text-slate-500">
-            For now, lesson content is plain text. We can introduce richer
-            learning content later.
+            Optional structured configuration for rendering this content block.
           </p>
         </div>
 
@@ -841,7 +1516,7 @@ function LessonForm({
             ) : (
               <>
                 <CheckCircle2 size={16} />
-                {isEditing ? "Save lesson" : "Add lesson"}
+                {isEditing ? "Save block" : "Add block"}
               </>
             )}
           </button>
@@ -849,6 +1524,36 @@ function LessonForm({
       </form>
     </Modal>
   );
+}
+
+function ContentBlockIcon({ type }: { type: AcademyContentBlockType }) {
+  if (type === "VIDEO") return <Video size={17} />;
+  if (type === "IMAGE") return <ImageIcon size={17} />;
+  if (type === "PDF") return <FileText size={17} />;
+  if (type === "TABLE") return <Table2 size={17} />;
+  if (type === "QUICK_CHECK") return <ClipboardCheck size={17} />;
+  if (type === "CALLOUT") return <GraduationCap size={17} />;
+
+  return <Type size={17} />;
+}
+
+function contentBlockLabel(type: AcademyContentBlockType) {
+  switch (type) {
+    case "TEXT":
+      return "Text";
+    case "VIDEO":
+      return "Video";
+    case "IMAGE":
+      return "Image";
+    case "PDF":
+      return "PDF";
+    case "CALLOUT":
+      return "Callout";
+    case "TABLE":
+      return "Table";
+    case "QUICK_CHECK":
+      return "Quick Check";
+  }
 }
 
 function CourseCard({
@@ -862,9 +1567,18 @@ function CourseCard({
   onToggle: (course: AcademyCourse) => void;
   onManage: (course: AcademyCourse) => void;
 }) {
-  const lessonCount = course.modules.reduce(
-    (total: number, academyModule: AcademyModule) =>
-      total + academyModule.lessons.length,
+  const sessionCount = course.weeks.reduce(
+    (total, week) => total + week.sessions.length,
+    0,
+  );
+
+  const contentBlockCount = course.weeks.reduce(
+    (total, week) =>
+      total +
+      week.sessions.reduce(
+        (sessionTotal, session) => sessionTotal + session.contentBlocks.length,
+        0,
+      ),
     0,
   );
 
@@ -902,17 +1616,26 @@ function CourseCard({
         {course.description || "No course description has been added yet."}
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-3 gap-3">
         <div className="rounded-xl bg-slate-50 p-3">
-          <p className="text-xs text-slate-500">Modules</p>
+          <p className="text-xs text-slate-500">Weeks</p>
           <p className="mt-1 text-lg font-bold text-slate-900">
-            {course.modules.length}
+            {course.weeks.length}
           </p>
         </div>
 
         <div className="rounded-xl bg-slate-50 p-3">
-          <p className="text-xs text-slate-500">Lessons</p>
-          <p className="mt-1 text-lg font-bold text-slate-900">{lessonCount}</p>
+          <p className="text-xs text-slate-500">Sessions</p>
+          <p className="mt-1 text-lg font-bold text-slate-900">
+            {sessionCount}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3">
+          <p className="text-xs text-slate-500">Blocks</p>
+          <p className="mt-1 text-lg font-bold text-slate-900">
+            {contentBlockCount}
+          </p>
         </div>
       </div>
 
@@ -955,66 +1678,114 @@ function CourseContentManager({
   onBack: () => void;
   onChanged: () => void;
 }) {
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
+  const [expandedSessions, setExpandedSessions] = useState<Set<string>>(
     new Set(),
   );
 
-  const [showModuleForm, setShowModuleForm] = useState(false);
-  const [editingModule, setEditingModule] = useState<AcademyModule | null>(
+  const [showWeekForm, setShowWeekForm] = useState(false);
+  const [editingWeek, setEditingWeek] = useState<AcademyWeek | null>(null);
+
+  const [showSessionForm, setShowSessionForm] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<AcademyWeek | null>(null);
+  const [editingSession, setEditingSession] = useState<AcademySession | null>(
     null,
   );
 
-  const [showLessonForm, setShowLessonForm] = useState(false);
-  const [selectedModule, setSelectedModule] = useState<AcademyModule | null>(
+  const [showContentBlockForm, setShowContentBlockForm] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<AcademySession | null>(
     null,
   );
-  const [editingLesson, setEditingLesson] = useState<AcademyLesson | null>(
-    null,
-  );
+  const [editingContentBlock, setEditingContentBlock] =
+    useState<AcademyContentBlock | null>(null);
 
-  const toggleExpanded = (moduleId: string) => {
-    setExpandedModules((current) => {
+  const toggleWeek = (weekId: string) => {
+    setExpandedWeeks((current) => {
       const next = new Set(current);
 
-      if (next.has(moduleId)) {
-        next.delete(moduleId);
+      if (next.has(weekId)) {
+        next.delete(weekId);
       } else {
-        next.add(moduleId);
+        next.add(weekId);
       }
 
       return next;
     });
   };
 
-  const openCreateModule = () => {
-    setEditingModule(null);
-    setShowModuleForm(true);
-  };
-
-  const openEditModule = (academyModule: AcademyModule) => {
-    setEditingModule(academyModule);
-    setShowModuleForm(true);
-  };
-
-  const openCreateLesson = (academyModule: AcademyModule) => {
-    setSelectedModule(academyModule);
-    setEditingLesson(null);
-    setShowLessonForm(true);
-
-    setExpandedModules((current) => {
+  const toggleSession = (sessionId: string) => {
+    setExpandedSessions((current) => {
       const next = new Set(current);
-      next.add(academyModule.id);
+
+      if (next.has(sessionId)) {
+        next.delete(sessionId);
+      } else {
+        next.add(sessionId);
+      }
+
       return next;
     });
   };
 
-  const openEditLesson = (
-    academyModule: AcademyModule,
-    lesson: AcademyLesson,
+  const openCreateWeek = () => {
+    setEditingWeek(null);
+    setShowWeekForm(true);
+  };
+
+  const openEditWeek = (week: AcademyWeek) => {
+    setEditingWeek(week);
+    setShowWeekForm(true);
+  };
+
+  const openCreateSession = (week: AcademyWeek) => {
+    setSelectedWeek(week);
+    setEditingSession(null);
+    setShowSessionForm(true);
+
+    setExpandedWeeks((current) => {
+      const next = new Set(current);
+      next.add(week.id);
+      return next;
+    });
+  };
+
+  const openEditSession = (week: AcademyWeek, session: AcademySession) => {
+    setSelectedWeek(week);
+    setEditingSession(session);
+    setShowSessionForm(true);
+  };
+
+  const openCreateContentBlock = (session: AcademySession) => {
+    setSelectedSession(session);
+    setEditingContentBlock(null);
+    setShowContentBlockForm(true);
+
+    setExpandedSessions((current) => {
+      const next = new Set(current);
+      next.add(session.id);
+      return next;
+    });
+
+    const week = course.weeks.find((item) =>
+      item.sessions.some((itemSession) => itemSession.id === session.id),
+    );
+
+    if (week) {
+      setExpandedWeeks((current) => {
+        const next = new Set(current);
+        next.add(week.id);
+        return next;
+      });
+    }
+  };
+
+  const openEditContentBlock = (
+    session: AcademySession,
+    block: AcademyContentBlock,
   ) => {
-    setSelectedModule(academyModule);
-    setEditingLesson(lesson);
-    setShowLessonForm(true);
+    setSelectedSession(session);
+    setEditingContentBlock(block);
+    setShowContentBlockForm(true);
   };
 
   return (
@@ -1063,60 +1834,66 @@ function CourseContentManager({
 
               <button
                 type="button"
-                onClick={openCreateModule}
+                onClick={openCreateWeek}
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#003F8E] px-5 py-3 text-sm font-semibold text-white hover:bg-[#003477]"
               >
                 <Plus size={18} />
-                Add module
+                Add week
               </button>
             </div>
           </div>
 
           <div className="p-6">
-            {course.modules.length === 0 && (
+            {course.weeks.length === 0 && (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#003F8E]">
                   <BookOpen size={26} />
                 </div>
 
                 <h3 className="mt-4 text-lg font-bold text-slate-900">
-                  No modules yet
+                  No weeks yet
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
-                  Start building this course by adding its first module. Modules
-                  can then contain individual lessons.
+                  Start building this course by adding its first week. Weeks
+                  contain sessions, and sessions contain learning content
+                  blocks.
                 </p>
 
                 <button
                   type="button"
-                  onClick={openCreateModule}
+                  onClick={openCreateWeek}
                   className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#003F8E] px-5 py-3 text-sm font-semibold text-white hover:bg-[#003477]"
                 >
                   <Plus size={17} />
-                  Add first module
+                  Add first week
                 </button>
               </div>
             )}
 
-            {course.modules.length > 0 && (
+            {course.weeks.length > 0 && (
               <div className="space-y-4">
-                {course.modules.map((academyModule: AcademyModule) => {
-                  const expanded = expandedModules.has(academyModule.id);
+                {course.weeks.map((week) => {
+                  const expanded = expandedWeeks.has(week.id);
+                  const sessionCount = week.sessions.length;
+                  const blockCount = week.sessions.reduce(
+                    (total, session) => total + session.contentBlocks.length,
+                    0,
+                  );
 
                   return (
                     <article
-                      key={academyModule.id}
+                      key={week.id}
                       className="overflow-hidden rounded-2xl border border-slate-200"
                     >
                       <div className="flex flex-col gap-4 bg-white p-5 md:flex-row md:items-center md:justify-between">
                         <button
                           type="button"
-                          onClick={() => toggleExpanded(academyModule.id)}
+                          onClick={() => toggleWeek(week.id)}
                           className="flex min-w-0 items-center gap-4 text-left"
                         >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-[#003F8E]">
-                            {academyModule.order}
+                            {week.order}
                           </div>
 
                           <div className="min-w-0">
@@ -1128,18 +1905,19 @@ function CourseContentManager({
                               )}
 
                               <h3 className="truncate font-bold text-slate-900">
-                                {academyModule.title}
+                                {week.title}
                               </h3>
                             </div>
 
                             <p className="mt-1 pl-6 text-xs text-slate-500">
-                              {academyModule.lessons.length}{" "}
-                              {academyModule.lessons.length === 1
-                                ? "lesson"
-                                : "lessons"}
-                              {academyModule.description
-                                ? ` · ${academyModule.description}`
-                                : ""}
+                              {sessionCount}{" "}
+                              {sessionCount === 1 ? "session" : "sessions"}
+                              {" · "}
+                              {blockCount}{" "}
+                              {blockCount === 1
+                                ? "content block"
+                                : "content blocks"}
+                              {week.subtitle ? ` · ${week.subtitle}` : ""}
                             </p>
                           </div>
                         </button>
@@ -1147,16 +1925,16 @@ function CourseContentManager({
                         <div className="flex shrink-0 gap-2">
                           <button
                             type="button"
-                            onClick={() => openCreateLesson(academyModule)}
+                            onClick={() => openCreateSession(week)}
                             className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-[#003F8E] hover:bg-blue-100"
                           >
                             <Plus size={16} />
-                            Lesson
+                            Session
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => openEditModule(academyModule)}
+                            onClick={() => openEditWeek(week)}
                             className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                           >
                             <Pencil size={15} />
@@ -1167,7 +1945,7 @@ function CourseContentManager({
 
                       {expanded && (
                         <div className="border-t border-slate-200 bg-slate-50 p-5">
-                          {academyModule.lessons.length === 0 ? (
+                          {week.sessions.length === 0 ? (
                             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center">
                               <FileText
                                 size={24}
@@ -1175,56 +1953,193 @@ function CourseContentManager({
                               />
 
                               <p className="mt-2 text-sm font-semibold text-slate-700">
-                                No lessons in this module
+                                No sessions in this week
                               </p>
 
                               <button
                                 type="button"
-                                onClick={() => openCreateLesson(academyModule)}
+                                onClick={() => openCreateSession(week)}
                                 className="mt-3 text-sm font-semibold text-[#003F8E] hover:underline"
                               >
-                                Add the first lesson
+                                Add the first session
                               </button>
                             </div>
                           ) : (
-                            <div className="space-y-2">
-                              {academyModule.lessons.map(
-                                (lesson: AcademyLesson) => (
-                                  <div
-                                    key={lesson.id}
-                                    className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4"
+                            <div className="space-y-3">
+                              {week.sessions.map((session) => {
+                                const sessionExpanded = expandedSessions.has(
+                                  session.id,
+                                );
+
+                                return (
+                                  <article
+                                    key={session.id}
+                                    className="overflow-hidden rounded-xl border border-slate-200 bg-white"
                                   >
-                                    <div className="flex min-w-0 items-center gap-3">
-                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
-                                        {lesson.order}
-                                      </div>
+                                    <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          toggleSession(session.id)
+                                        }
+                                        className="flex min-w-0 items-center gap-3 text-left"
+                                      >
+                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
+                                          {session.order}
+                                        </div>
 
-                                      <div className="min-w-0">
-                                        <p className="truncate text-sm font-semibold text-slate-900">
-                                          {lesson.title}
-                                        </p>
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            {sessionExpanded ? (
+                                              <ChevronDown
+                                                size={15}
+                                                className="shrink-0"
+                                              />
+                                            ) : (
+                                              <ChevronRight
+                                                size={15}
+                                                className="shrink-0"
+                                              />
+                                            )}
 
-                                        {lesson.description && (
-                                          <p className="mt-1 truncate text-xs text-slate-500">
-                                            {lesson.description}
+                                            <p className="truncate text-sm font-semibold text-slate-900">
+                                              {session.title}
+                                            </p>
+                                          </div>
+
+                                          <p className="mt-1 pl-5 text-xs text-slate-500">
+                                            {session.contentBlocks.length}{" "}
+                                            {session.contentBlocks.length === 1
+                                              ? "content block"
+                                              : "content blocks"}
+                                            {session.subtitle
+                                              ? ` · ${session.subtitle}`
+                                              : ""}
                                           </p>
-                                        )}
+                                        </div>
+                                      </button>
+
+                                      <div className="flex shrink-0 gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            openCreateContentBlock(session)
+                                          }
+                                          className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-[#003F8E] hover:bg-blue-100"
+                                        >
+                                          <Plus size={15} />
+                                          Content
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            openEditSession(week, session)
+                                          }
+                                          className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 hover:text-[#003F8E]"
+                                          aria-label={`Edit ${session.title}`}
+                                        >
+                                          <Pencil size={15} />
+                                        </button>
                                       </div>
                                     </div>
 
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        openEditLesson(academyModule, lesson)
-                                      }
-                                      className="shrink-0 rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 hover:text-[#003F8E]"
-                                      aria-label={`Edit ${lesson.title}`}
-                                    >
-                                      <Pencil size={15} />
-                                    </button>
-                                  </div>
-                                ),
-                              )}
+                                    {sessionExpanded && (
+                                      <div className="border-t border-slate-200 bg-slate-50 p-4">
+                                        {session.contentBlocks.length === 0 ? (
+                                          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center">
+                                            <Type
+                                              size={22}
+                                              className="mx-auto text-slate-400"
+                                            />
+
+                                            <p className="mt-2 text-sm font-semibold text-slate-700">
+                                              No content blocks yet
+                                            </p>
+
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                openCreateContentBlock(session)
+                                              }
+                                              className="mt-3 text-sm font-semibold text-[#003F8E] hover:underline"
+                                            >
+                                              Add the first content block
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <div className="space-y-2">
+                                            {session.contentBlocks.map(
+                                              (block) => (
+                                                <div
+                                                  key={block.id}
+                                                  className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4"
+                                                >
+                                                  <div className="flex min-w-0 items-center gap-3">
+                                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#003F8E]">
+                                                      <ContentBlockIcon
+                                                        type={block.type}
+                                                      />
+                                                    </div>
+
+                                                    <div className="min-w-0">
+                                                      <div className="flex items-center gap-2">
+                                                        <p className="truncate text-sm font-semibold text-slate-900">
+                                                          {block.title ||
+                                                            contentBlockLabel(
+                                                              block.type,
+                                                            )}
+                                                        </p>
+
+                                                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                                                          {contentBlockLabel(
+                                                            block.type,
+                                                          )}
+                                                        </span>
+                                                      </div>
+
+                                                      <p className="mt-1 text-xs text-slate-500">
+                                                        Block {block.order}
+                                                        {" · "}
+                                                        {block.status}
+                                                        {block.media
+                                                          ? ` · ${block.media.provider}`
+                                                          : ""}
+                                                        {block.question
+                                                          ? " · Question attached"
+                                                          : ""}
+                                                      </p>
+                                                    </div>
+                                                  </div>
+
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      openEditContentBlock(
+                                                        session,
+                                                        block,
+                                                      )
+                                                    }
+                                                    className="shrink-0 rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 hover:text-[#003F8E]"
+                                                    aria-label={`Edit ${
+                                                      block.title ||
+                                                      contentBlockLabel(
+                                                        block.type,
+                                                      )
+                                                    }`}
+                                                  >
+                                                    <Pencil size={15} />
+                                                  </button>
+                                                </div>
+                                              ),
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </article>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -1238,20 +2153,29 @@ function CourseContentManager({
         </div>
       </section>
 
-      {showModuleForm && (
-        <ModuleForm
+      {showWeekForm && (
+        <WeekForm
           course={course}
-          academyModule={editingModule}
-          onClose={() => setShowModuleForm(false)}
+          week={editingWeek}
+          onClose={() => setShowWeekForm(false)}
           onSaved={onChanged}
         />
       )}
 
-      {showLessonForm && selectedModule && (
-        <LessonForm
-          academyModule={selectedModule}
-          lesson={editingLesson}
-          onClose={() => setShowLessonForm(false)}
+      {showSessionForm && selectedWeek && (
+        <SessionForm
+          week={selectedWeek}
+          session={editingSession}
+          onClose={() => setShowSessionForm(false)}
+          onSaved={onChanged}
+        />
+      )}
+
+      {showContentBlockForm && selectedSession && (
+        <ContentBlockForm
+          session={selectedSession}
+          block={editingContentBlock}
+          onClose={() => setShowContentBlockForm(false)}
           onSaved={onChanged}
         />
       )}
@@ -1278,29 +2202,42 @@ function AcademyManagerDashboard() {
   const [managingCourseId, setManagingCourseId] = useState<string | null>(null);
 
   const courses: AcademyCourse[] = data?.academyCourses ?? [];
-  const activeCourses = courses.filter(
-    (course: AcademyCourse) => course.isActive,
-  );
 
-  const totalModules = courses.reduce(
-    (total: number, course: AcademyCourse) => total + course.modules.length,
+  const activeCourses = courses.filter((course) => course.isActive);
+
+  const totalWeeks = courses.reduce(
+    (total, course) => total + course.weeks.length,
     0,
   );
 
-  const totalLessons = courses.reduce(
-    (total: number, course: AcademyCourse) =>
+  const totalSessions = courses.reduce(
+    (total, course) =>
       total +
-      course.modules.reduce(
-        (moduleTotal: number, academyModule: AcademyModule) =>
-          moduleTotal + academyModule.lessons.length,
+      course.weeks.reduce(
+        (weekTotal, week) => weekTotal + week.sessions.length,
+        0,
+      ),
+    0,
+  );
+
+  const totalContentBlocks = courses.reduce(
+    (total, course) =>
+      total +
+      course.weeks.reduce(
+        (weekTotal, week) =>
+          weekTotal +
+          week.sessions.reduce(
+            (sessionTotal, session) =>
+              sessionTotal + session.contentBlocks.length,
+            0,
+          ),
         0,
       ),
     0,
   );
 
   const managingCourse =
-    courses.find((course: AcademyCourse) => course.id === managingCourseId) ??
-    null;
+    courses.find((course) => course.id === managingCourseId) ?? null;
 
   const openCreateForm = () => {
     setEditingCourse(null);
@@ -1359,8 +2296,9 @@ function AcademyManagerDashboard() {
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Create courses, organize modules and lessons, manage learners, and
-              prepare graduates for the Katel professional pathway.
+              Create courses, organize weeks and sessions, build structured
+              learning content, and prepare graduates for the Katel professional
+              pathway.
             </p>
           </div>
 
@@ -1390,17 +2328,17 @@ function AcademyManagerDashboard() {
           />
 
           <StatCard
-            icon={FileText}
-            label="Modules"
-            value={totalModules}
-            description="Learning modules across Academy courses."
+            icon={GraduationCap}
+            label="Weeks"
+            value={totalWeeks}
+            description="Learning weeks across Academy courses."
           />
 
           <StatCard
-            icon={GraduationCap}
-            label="Lessons"
-            value={totalLessons}
-            description="Lessons organized inside modules."
+            icon={FileText}
+            label="Content blocks"
+            value={totalContentBlocks}
+            description={`${totalSessions} sessions currently organized.`}
           />
         </div>
 
@@ -1534,7 +2472,8 @@ function AcademyManagerDashboard() {
 
               <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
                 Start the Academy by creating the general Katel Course. You can
-                then add career-development-style modules and lessons.
+                then organize it into weeks, sessions, and structured content
+                blocks.
               </p>
 
               <button
@@ -1550,15 +2489,15 @@ function AcademyManagerDashboard() {
 
           {courses.length > 0 && (
             <div className="grid gap-4 lg:grid-cols-2">
-              {courses.map((course: AcademyCourse) => (
+              {courses.map((course) => (
                 <CourseCard
                   key={course.id}
                   course={course}
                   onEdit={openEditForm}
-                  onToggle={(selectedCourse: AcademyCourse) =>
+                  onToggle={(selectedCourse) =>
                     void toggleCourse(selectedCourse)
                   }
-                  onManage={(selectedCourse: AcademyCourse) =>
+                  onManage={(selectedCourse) =>
                     setManagingCourseId(selectedCourse.id)
                   }
                 />
@@ -1625,8 +2564,9 @@ function AcademyLearnerDashboard() {
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
               Your learning journey will appear here. Once you are enrolled, you
-              will be able to access your courses, work through lessons,
-              complete assessments, and progress toward Katel readiness.
+              will be able to access your courses, work through sessions and
+              content blocks, complete assessments, and progress toward Katel
+              readiness.
             </p>
           </div>
         </div>

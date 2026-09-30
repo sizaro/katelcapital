@@ -29,6 +29,11 @@ export default function Navbar() {
     },
   ];
 
+  const goToLogin = () => {
+    setMenuOpen(false);
+    navigate("/login");
+  };
+
   return (
     <>
       {/* ================= NAVBAR ================= */}
@@ -68,6 +73,14 @@ export default function Navbar() {
 
           {/* ================= MOBILE RIGHT SECTION ================= */}
           <div className="flex items-center gap-2 lg:hidden">
+            {/* ACCOUNT */}
+            <button
+              onClick={goToLogin}
+              className="border border-[#003F8E] text-[#003F8E] px-3 py-1 rounded-lg text-sm"
+            >
+              Account
+            </button>
+
             {/* HIRE BUTTON */}
             <button
               onClick={() => navigate("/organizations")}
@@ -96,6 +109,15 @@ export default function Navbar() {
 
           {/* ================= DESKTOP BUTTONS ================= */}
           <div className="hidden lg:flex items-center gap-3">
+            {/* ACCOUNT */}
+            <button
+              onClick={goToLogin}
+              className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+            >
+              Account
+            </button>
+
+            {/* START HIRING */}
             <button
               onClick={() => navigate("/organizations")}
               className="border border-[#003F8E] text-[#003F8E] px-4 py-2 rounded-lg hover:bg-gray-100 transition"
@@ -103,6 +125,7 @@ export default function Navbar() {
               Start Hiring
             </button>
 
+            {/* FIND WORK */}
             <button
               onClick={() => navigate("/professionals")}
               className="bg-[#003F8E] text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
@@ -165,8 +188,16 @@ export default function Navbar() {
               </NavLink>
             ))}
 
+            {/* MOBILE ACCOUNT */}
+            <button
+              onClick={goToLogin}
+              className="mt-6 w-full rounded-lg border border-[#003F8E] px-4 py-3 font-semibold text-[#003F8E]"
+            >
+              Account
+            </button>
+
             {/* MOBILE ACTIONS */}
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-3 flex flex-col gap-3">
               <button
                 onClick={() => {
                   setMenuOpen(false);
