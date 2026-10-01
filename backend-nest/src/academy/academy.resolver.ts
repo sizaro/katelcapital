@@ -1,9 +1,12 @@
 import { UseGuards } from '@nestjs/common';
+
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+
 import { CurrentUser } from '../auth/current-user.decorator';
 import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermissions } from '../auth/permissions.decorator';
+
 import { AcademyService } from './academy.service';
 import {
   AcademyContentBlock,
@@ -36,6 +39,13 @@ export class AcademyResolver {
   @RequirePermissions('academy.view')
   academyCourse(@Args('id', { type: () => ID }) id: string) {
     return this.academy.getActiveCourse(id);
+  }
+
+  @Query(() => [AcademyCourse])
+  @UseGuards(GqlAuthGuard, PermissionsGuard)
+  @RequirePermissions('academy.learn')
+  myAcademyCourses(@CurrentUser() user: any) {
+    return this.academy.listMyCourses(user.id);
   }
 
   @Mutation(() => AcademyCourse)

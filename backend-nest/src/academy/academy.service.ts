@@ -86,6 +86,74 @@ export class AcademyService {
     return course;
   }
 
+  async listMyCourses(userId: string) {
+    const enrollments = await this.prisma.academyEnrollment.findMany({
+      where: {
+        userId,
+        status: {
+          in: ['ENROLLED', 'IN_PROGRESS', 'COMPLETED'],
+        },
+        course: {
+          isActive: true,
+        },
+      },
+      include: {
+        course: {
+          include: {
+            weeks: {
+              where: {
+                isActive: true,
+                status: 'PUBLISHED',
+              },
+              orderBy: {
+                order: 'asc',
+              },
+              include: {
+                sessions: {
+                  where: {
+                    isActive: true,
+                    status: 'PUBLISHED',
+                  },
+                  orderBy: {
+                    order: 'asc',
+                  },
+                  include: {
+                    contentBlocks: {
+                      where: {
+                        isActive: true,
+                        status: 'PUBLISHED',
+                      },
+                      orderBy: {
+                        order: 'asc',
+                      },
+                      include: {
+                        media: true,
+                        question: {
+                          include: {
+                            options: {
+                              orderBy: {
+                                order: 'asc',
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        enrolledAt: 'desc',
+      },
+    });
+
+    return enrollments.map((enrollment) => enrollment.course);
+  }
+
   async createCourse(input: CreateAcademyCourseInput) {
     const code = input.code.trim().toUpperCase();
     const title = input.title.trim();

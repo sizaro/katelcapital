@@ -94,6 +94,74 @@ const ACADEMY_COURSES_QUERY = gql`
   }
 `;
 
+const MY_ACADEMY_COURSES_QUERY = gql`
+  query MyAcademyCourses {
+    myAcademyCourses {
+      id
+      code
+      title
+      description
+      isActive
+      weeks {
+        id
+        title
+        subtitle
+        description
+        order
+        status
+        isActive
+        sessions {
+          id
+          title
+          subtitle
+          description
+          order
+          status
+          isActive
+          contentBlocks {
+            id
+            type
+            title
+            textContent
+            configuration
+            order
+            status
+            isActive
+            media {
+              id
+              sourceType
+              provider
+              type
+              publicId
+              url
+              thumbnailUrl
+              fileName
+              format
+              duration
+              metadata
+            }
+            question {
+              id
+              prompt
+              type
+              points
+              gradingMode
+              correctAnswer
+              explanation
+              options {
+                id
+                text
+                order
+                isCorrect
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 const CREATE_ACADEMY_COURSE_MUTATION = gql`
   mutation CreateAcademyCourse($input: CreateAcademyCourseInput!) {
     createAcademyCourse(input: $input) {
@@ -479,6 +547,10 @@ type AcademyCoursesData = {
   academyCourses: AcademyCourse[];
 };
 
+type MyAcademyCoursesData = {
+  myAcademyCourses: AcademyCourse[];
+};
+
 type CreateAcademyCourseData = {
   createAcademyCourse: AcademyCourse;
 };
@@ -773,6 +845,9 @@ function WeekForm({
   const [order, setOrder] = useState(
     String(week?.order ?? course.weeks.length + 1),
   );
+  const [status, setStatus] = useState<AcademyContentStatus>(
+    week?.status ?? "DRAFT",
+  );
   const [formError, setFormError] = useState("");
 
   const [createWeek, { loading: creating }] =
@@ -809,7 +884,7 @@ function WeekForm({
               subtitle: subtitle.trim() || null,
               description: description.trim() || null,
               order: numericOrder,
-              status: week.status,
+              status,
               isActive: week.isActive,
             },
           },
@@ -898,6 +973,28 @@ function WeekForm({
 
         <div>
           <label
+            htmlFor="academy-week-status"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Status
+          </label>
+
+          <select
+            id="academy-week-status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as AcademyContentStatus)
+            }
+            className={inputClassName}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+        </div>
+
+        <div>
+          <label
             htmlFor="academy-week-description"
             className="mb-2 block text-sm font-semibold text-slate-700"
           >
@@ -971,6 +1068,9 @@ function SessionForm({
   const [order, setOrder] = useState(
     String(session?.order ?? week.sessions.length + 1),
   );
+  const [status, setStatus] = useState<AcademyContentStatus>(
+    session?.status ?? "DRAFT",
+  );
   const [formError, setFormError] = useState("");
 
   const [createSession, { loading: creating }] =
@@ -1007,7 +1107,7 @@ function SessionForm({
               subtitle: subtitle.trim() || null,
               description: description.trim() || null,
               order: numericOrder,
-              status: session.status,
+              status,
               isActive: session.isActive,
             },
           },
@@ -1094,6 +1194,28 @@ function SessionForm({
             onChange={(event) => setOrder(event.target.value)}
             className={inputClassName}
           />
+        </div>
+
+        <div>
+          <label
+            htmlFor="academy-session-status"
+            className="mb-2 block text-sm font-semibold text-slate-700"
+          >
+            Status
+          </label>
+
+          <select
+            id="academy-session-status"
+            value={status}
+            onChange={(event) =>
+              setStatus(event.target.value as AcademyContentStatus)
+            }
+            className={inputClassName}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
         </div>
 
         <div>
@@ -2519,13 +2641,67 @@ function AcademyManagerDashboard() {
 }
 
 function AcademyLearnerDashboard() {
+  const { data, loading, error, refetch } = useQuery<MyAcademyCoursesData>(
+    MY_ACADEMY_COURSES_QUERY,
+    {
+      fetchPolicy: "cache-and-network",
+    },
+  );
+
+  const courses = data?.myAcademyCourses ?? [];
+
+  const assessmentCount = courses.reduce(
+    (total, course) =>
+      total +
+      course.weeks.reduce(
+        (weekTotal, week) =>
+          weekTotal +
+          week.sessions.reduce(
+            (sessionTotal, session) =>
+              sessionTotal +
+              session.contentBlocks.filter(
+                (block) => block.type === "QUICK_CHECK",
+              ).length,
+            0,
+          ),
+        0,
+      ),
+    0,
+  );
+
+  const sessionCount = courses.reduce(
+    (total, course) =>
+      total +
+      course.weeks.reduce(
+        (weekTotal, week) => weekTotal + week.sessions.length,
+        0,
+      ),
+    0,
+  );
+
+  const contentBlockCount = courses.reduce(
+    (total, course) =>
+      total +
+      course.weeks.reduce(
+        (weekTotal, week) =>
+          weekTotal +
+          week.sessions.reduce(
+            (sessionTotal, session) =>
+              sessionTotal + session.contentBlocks.length,
+            0,
+          ),
+        0,
+      ),
+    0,
+  );
+
   return (
     <div className="mt-8">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={BookOpen}
           label="My courses"
-          value={0}
+          value={courses.length}
           description="Courses you are currently enrolled in."
         />
 
@@ -2533,14 +2709,14 @@ function AcademyLearnerDashboard() {
           icon={CheckCircle2}
           label="Completed"
           value={0}
-          description="Courses you have successfully completed."
+          description="Completion tracking will be connected to enrollment progress."
         />
 
         <StatCard
           icon={ClipboardCheck}
           label="Assessments"
-          value={0}
-          description="Assessments waiting for your attention."
+          value={assessmentCount}
+          description="Quick Checks available within your enrolled courses."
         />
 
         <StatCard
@@ -2551,26 +2727,228 @@ function AcademyLearnerDashboard() {
         />
       </div>
 
-      <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex items-start gap-4">
-          <div className="rounded-2xl bg-blue-50 p-4 text-[#003F8E]">
-            <GraduationCap size={28} />
-          </div>
+      {loading && !data && (
+        <div className="mt-8 space-y-4">
+          <div className="h-32 animate-pulse rounded-3xl bg-slate-200" />
+          <div className="h-48 animate-pulse rounded-3xl bg-slate-200" />
+        </div>
+      )}
 
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Welcome to Katel Capital Academy
-            </h2>
+      {error && (
+        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
+          <p className="font-semibold">
+            We could not load your Academy courses.
+          </p>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Your learning journey will appear here. Once you are enrolled, you
-              will be able to access your courses, work through sessions and
-              content blocks, complete assessments, and progress toward Katel
-              readiness.
-            </p>
+          <p className="mt-1 text-sm">{error.message}</p>
+
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="mt-4 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && courses.length === 0 && (
+        <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="rounded-2xl bg-blue-50 p-4 text-[#003F8E]">
+              <GraduationCap size={28} />
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">
+                Welcome to Katel Capital Academy
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                You do not have an Academy course enrollment yet. Once you are
+                enrolled, your courses, weeks, sessions, learning content, and
+                assessments will appear here.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {!loading && !error && courses.length > 0 && (
+        <>
+          <section className="mt-8">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-slate-900">My learning</h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Your enrolled Academy courses and their published learning
+                content.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {courses.map((course) => {
+                const courseSessionCount = course.weeks.reduce(
+                  (total, week) => total + week.sessions.length,
+                  0,
+                );
+
+                const courseContentBlockCount = course.weeks.reduce(
+                  (total, week) =>
+                    total +
+                    week.sessions.reduce(
+                      (sessionTotal, session) =>
+                        sessionTotal + session.contentBlocks.length,
+                      0,
+                    ),
+                  0,
+                );
+
+                return (
+                  <article
+                    key={course.id}
+                    className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="rounded-2xl bg-blue-50 p-4 text-[#003F8E]">
+                          <BookOpen size={25} />
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            {course.code}
+                          </p>
+
+                          <h3 className="mt-1 text-xl font-bold text-slate-900">
+                            {course.title}
+                          </h3>
+
+                          {course.description && (
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                              {course.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 lg:min-w-[300px]">
+                        <div className="rounded-xl bg-slate-50 p-3 text-center">
+                          <p className="text-xs text-slate-500">Weeks</p>
+                          <p className="mt-1 font-bold text-slate-900">
+                            {course.weeks.length}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-50 p-3 text-center">
+                          <p className="text-xs text-slate-500">Sessions</p>
+                          <p className="mt-1 font-bold text-slate-900">
+                            {courseSessionCount}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-slate-50 p-3 text-center">
+                          <p className="text-xs text-slate-500">Content</p>
+                          <p className="mt-1 font-bold text-slate-900">
+                            {courseContentBlockCount}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 space-y-3">
+                      {course.weeks.map((week) => (
+                        <div
+                          key={week.id}
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white font-bold text-[#003F8E] shadow-sm">
+                              {week.order}
+                            </div>
+
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-slate-900">
+                                {week.title}
+                              </h4>
+
+                              {week.subtitle && (
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {week.subtitle}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="mt-4 space-y-2">
+                            {week.sessions.map((session) => (
+                              <div
+                                key={session.id}
+                                className="rounded-xl border border-slate-200 bg-white p-4"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
+                                    {session.order}
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <h5 className="font-semibold text-slate-900">
+                                      {session.title}
+                                    </h5>
+
+                                    {session.subtitle && (
+                                      <p className="mt-1 text-xs text-slate-500">
+                                        {session.subtitle}
+                                      </p>
+                                    )}
+
+                                    <div className="mt-3 space-y-2">
+                                      {session.contentBlocks.map((block) => (
+                                        <div
+                                          key={block.id}
+                                          className="flex items-start gap-3 rounded-lg bg-slate-50 p-3"
+                                        >
+                                          <div className="mt-0.5 text-[#003F8E]">
+                                            <ContentBlockIcon
+                                              type={block.type}
+                                            />
+                                          </div>
+
+                                          <div className="min-w-0">
+                                            <p className="text-sm font-medium text-slate-800">
+                                              {block.title ||
+                                                contentBlockLabel(block.type)}
+                                            </p>
+
+                                            {block.type === "TEXT" &&
+                                              block.textContent && (
+                                                <p className="mt-1 text-xs leading-5 text-slate-500">
+                                                  {block.textContent}
+                                                </p>
+                                              )}
+
+                                            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                              {contentBlockLabel(block.type)}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

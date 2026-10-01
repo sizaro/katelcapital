@@ -351,6 +351,9 @@ export class AcademyCourse {
   @Field(() => String, { nullable: true })
   description?: string | null;
 
+  @Field(() => Int)
+  durationWeeks!: number;
+
   @Field(() => Boolean)
   isActive!: boolean;
 
@@ -382,6 +385,11 @@ export class CreateAcademyCourseInput {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => Int)
+  @IsInt()
+  @Min(1)
+  durationWeeks!: number;
 }
 
 @InputType()
@@ -395,6 +403,12 @@ export class UpdateAcademyCourseInput {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationWeeks?: number;
 
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
@@ -525,6 +539,7 @@ export class UpdateAcademySessionInput {
 /* -------------------------------------------------------------------------- */
 /* CONTENT BLOCK INPUTS                                                       */
 /* -------------------------------------------------------------------------- */
+
 @InputType()
 export class CreateAcademyContentBlockInput {
   @Field(() => AcademyContentBlockType)
