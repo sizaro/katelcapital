@@ -53,3 +53,40 @@ export class SuperAdminDashboard {
   @Field(() => [AdminUserSummary]) recentUsers!: AdminUserSummary[];
   @Field(() => [AdminActivity]) recentActivity!: AdminActivity[];
 }
+
+@ObjectType()
+export class AdminProfessionalRecord {
+  @Field() id!: string;
+  @Field() code!: string;
+  @Field() name!: string;
+  @Field() email!: string;
+  @Field() status!: string;
+  @Field(() => Int) completionPercent!: number;
+  @Field({ nullable: true }) category?: string;
+  @Field({ nullable: true }) location?: string;
+}
+
+@ObjectType()
+export class AdminClientRecord {
+  @Field() id!: string;
+  @Field() code!: string;
+  @Field() name!: string;
+  @Field({ nullable: true }) industry?: string;
+  @Field({ nullable: true }) country?: string;
+  @Field() status!: string;
+  @Field(() => Int) contacts!: number;
+  @Field(() => Int) requests!: number;
+}
+
+@ObjectType()
+export class AdminReadinessRecord {
+  @Field() id!: string;
+  @Field() learnerName!: string;
+  @Field() learnerEmail!: string;
+  @Field() courseTitle!: string;
+  @Field() enrollmentStatus!: string;
+  @Field() status!: string;
+  @Field({ nullable: true }) score?: string;
+  @Field({ nullable: true }) reviewedBy?: string;
+  @Field({ nullable: true }) reviewedAt?: string;
+}

@@ -210,6 +210,67 @@ export class DashboardService {
     };
   }
 
+  async adminProfessionals() {
+    const records = await this.prisma.professionalProfile.findMany({
+      include: { user: true, category: true },
+      orderBy: [{ status: 'asc' }, { professionalCode: 'asc' }],
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      code: record.professionalCode,
+      name: `${record.user.firstName} ${record.user.lastName}`.trim(),
+      email: record.user.email,
+      status: record.status,
+      completionPercent: record.completionPercent,
+      category: record.category?.name,
+      location: record.location,
+    }));
+  }
+
+  async adminClients() {
+    const records = await this.prisma.clientOrganization.findMany({
+      include: { _count: { select: { contacts: true, requests: true } } },
+      orderBy: { legalName: 'asc' },
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      code: record.organizationCode,
+      name: record.legalName,
+      industry: record.industry,
+      country: record.country,
+      status: record.status,
+      contacts: record._count.contacts,
+      requests: record._count.requests,
+    }));
+  }
+
+  async adminReadiness() {
+    const records = await this.prisma.academyReadiness.findMany({
+      include: {
+        course: true,
+        reviewedBy: true,
+        enrollment: { include: { user: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      learnerName: `${record.enrollment.user.firstName} ${record.enrollment.user.lastName}`.trim(),
+      learnerEmail: record.enrollment.user.email,
+      courseTitle: record.course.title,
+      enrollmentStatus: record.enrollment.status,
+      status: record.status,
+      score: record.score?.toString(),
+      reviewedBy: record.reviewedBy
+        ? `${record.reviewedBy.firstName} ${record.reviewedBy.lastName}`.trim()
+        : undefined,
+      reviewedAt: record.reviewedAt?.toISOString(),
+    }));
+  }
+
   private metrics(rows: Array<[string, string, number]>) {
     return rows.map(([key, label, value]) => ({ key, label, value }));
   }
