@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState, type ElementType } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
 import type { DashboardData } from "../types/auth";
 import { PORTALS, type PortalKind } from "./portalAccess";
@@ -31,7 +31,12 @@ const QUERY = gql`
   }
 `;
 
-type NavigationItem = { label: string; icon: ElementType; visible: boolean };
+export type PortalNavigationItem = {
+  label: string;
+  icon: ElementType;
+  visible?: boolean;
+  path?: string;
+};
 
 export default function PortalDashboard({
   portal,
@@ -43,9 +48,11 @@ export default function PortalDashboard({
   children?: React.ReactNode;
   heading?: string;
   description?: string;
+  navigationItems?: PortalNavigationItem[];
 }) {
   const { user, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const { data, loading, error, refetch } = useQuery<{
     dashboard: DashboardData;
@@ -55,7 +62,7 @@ export default function PortalDashboard({
   });
   const role = user?.role ?? "";
   const portalDefinition = PORTALS[portal];
-  const navigation: NavigationItem[] = [
+  const defaultNavigation: PortalNavigationItem[] = [
     { label: "Overview", icon: BriefcaseBusiness, visible: true },
     {
       label: "Academy",
@@ -84,7 +91,10 @@ export default function PortalDashboard({
       icon: UserCog,
       visible: hasPermission("users.view") || hasPermission("roles.view"),
     },
-  ].filter((item) => item.visible);
+  ].filter((item) => item.visible !== false);
+  const navigation = (navigationItems ?? defaultNavigation).filter(
+    (item) => item.visible !== false,
+  );
 
   const signOut = async () => {
     await logout();
@@ -142,12 +152,15 @@ export default function PortalDashboard({
           <p className="mb-4 px-3 text-xs font-bold uppercase tracking-widest text-slate-400">
             Workspace
           </p>
-          {navigation.map(({ label, icon: Icon }) => (
+          {navigation.map(({ label, icon: Icon, path }) => (
             <button
               type="button"
               key={label}
-              onClick={() => setOpen(false)}
-              className="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium hover:bg-blue-50 hover:text-[#003F8E]"
+              onClick={() => {
+                setOpen(false);
+                if (path) navigate(path);
+              }}
+              className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium transition hover:bg-blue-50 hover:text-[#003F8E] ${path && (location.pathname === path || (path !== "/portal/admin" && location.pathname.startsWith(`${path}/`))) ? "bg-blue-50 text-[#003F8E]" : ""}`}
             >
               <Icon size={18} /> {label}
             </button>

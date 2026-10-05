@@ -2375,7 +2375,7 @@ function CourseContentManager({
   );
 }
 
-function AcademyManagerDashboard() {
+export function AcademyManagerDashboard() {
   const { data, loading, error, refetch } = useQuery<AcademyCoursesData>(
     ACADEMY_COURSES_QUERY,
     {
