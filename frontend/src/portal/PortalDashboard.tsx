@@ -43,6 +43,7 @@ export default function PortalDashboard({
   children,
   heading,
   description,
+  navigationItems,
 }: {
   portal: PortalKind;
   children?: React.ReactNode;
