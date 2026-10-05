@@ -32,6 +32,8 @@ const permissionKeys = [
   'academy.manage',
   'academy.grade',
   'academy.learn',
+  'academy.byu.review',
+  'academy.fees.manage',
   'clients.view',
   'clients.manage',
   'talent_requests.view',
@@ -76,12 +78,14 @@ const rolePermissions: Record<string, string[]> = {
     'professionals.assess',
     'professionals.vet',
     'academy.view',
+    'academy.byu.review',
   ],
 
   ACADEMY_MANAGER: [
     'academy.view',
     'academy.manage',
     'academy.grade',
+    'academy.byu.review',
     'professionals.view',
   ],
 
@@ -209,6 +213,19 @@ async function main() {
     await seedUser(adminEmail!, 'SUPER_ADMIN', 'Super Admin', adminPassword!);
   }
 
+  // Production may opt in to the two Academy reviewers without creating the
+  // broader local demo account set. They are idempotent and can be omitted.
+  for (const account of [
+    { email: process.env.SEED_ACADEMY_MANAGER_EMAIL, password: process.env.SEED_ACADEMY_MANAGER_PASSWORD, role: 'ACADEMY_MANAGER', name: 'Academy Manager' },
+    { email: process.env.SEED_VETTING_OFFICER_EMAIL, password: process.env.SEED_VETTING_OFFICER_PASSWORD, role: 'VETTING_OFFICER', name: 'Vetting Officer' },
+  ]) {
+    if (!account.email && !account.password) continue;
+    if (!account.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.email) || !account.password || account.password.length < 12) {
+      throw new Error(`Set a valid email and a password of at least 12 characters for ${account.role}, or remove both optional seed values.`);
+    }
+    await seedUser(account.email.trim().toLowerCase(), account.role, account.name, account.password);
+  }
+
   const demoPassword = process.env.SEED_DEMO_PASSWORD;
 
   if (
@@ -276,6 +293,18 @@ async function main() {
       },
     },
   });
+
+  for (const [key, value, description] of [
+    ['academy.registration_fee.first_time', 50000, 'Academy first-time registration fee in UGX.'],
+    ['academy.registration_fee.re_enrollment', 20000, 'Academy re-enrollment fee after a failed course in UGX.'],
+    ['academy.registration_fee.byu_pathway', 30000, 'Academy registration fee for approved BYU Pathway applicants in UGX.'],
+  ] as const) {
+    await prisma.systemSetting.upsert({
+      where: { key },
+      update: {},
+      create: { key, value, description },
+    });
+  }
 }
 
 main()

@@ -1,91 +1,14 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
+import { useMutation } from "@apollo/client/react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import AcademyShell from "./AcademyShell";
+import { academyError, BEGIN_BYU, VERIFY_BYU } from "./academyFlow";
 
 export default function AcademyByuVerification() {
-  const navigate = useNavigate();
-  const [application, setApplication] = useState(() => {
-    const stored = sessionStorage.getItem("katelAcademyApplication");
-    return stored ? JSON.parse(stored) : null;
-  });
-
-  const handleChoice = (isGraduate) => {
-    if (!application?.email) {
-      navigate("/academy/register", { replace: true });
-      return;
-    }
-
-    sessionStorage.setItem(
-      "katelAcademyApplication",
-      JSON.stringify({
-        ...application,
-        byuPathwayGraduate: isGraduate,
-      }),
-    );
-
-    navigate(
-      isGraduate
-        ? "/academy/byu-upload"
-        : "/academy/payment",
-    );
-  };
-
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main>
-        <section className="bg-[#003F8E] px-6 py-16 text-white md:py-20">
-          <div className="mx-auto max-w-4xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#F7C621]">
-              Katel Academy
-            </p>
-            <h1 className="text-4xl font-bold md:text-5xl">
-              BYU-Pathway graduate status
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100">
-              Your answer determines whether you need to provide proof of
-              your BYU-Pathway graduate status before continuing to payment.
-            </p>
-          </div>
-        </section>
-
-        <section className="px-6 py-16 md:py-20">
-          <div className="mx-auto max-w-2xl">
-            <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-10">
-              <h2 className="text-2xl font-bold text-[#003F8E]">
-                Are you a BYU-Pathway graduate?
-              </h2>
-
-              <p className="mt-3 leading-7 text-gray-600">
-                BYU-Pathway graduates can submit proof of their graduate
-                status for review before continuing to payment.
-              </p>
-
-              <div className="mt-8 space-y-4">
-                <button
-                  type="button"
-                  onClick={() => handleChoice(true)}
-                  className="w-full rounded-2xl border-2 border-[#003F8E] px-6 py-5 text-left font-semibold text-[#003F8E] transition hover:bg-blue-50"
-                >
-                  Yes, I am a BYU-Pathway graduate
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleChoice(false)}
-                  className="w-full rounded-2xl border border-gray-300 px-6 py-5 text-left font-semibold text-gray-800 transition hover:border-[#003F8E] hover:bg-gray-50"
-                >
-                  No, I am not a BYU-Pathway graduate
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  const navigate = useNavigate(); const [params] = useSearchParams(); const courseId = params.get("course");
+  const [email, setEmail] = useState(""); const [code, setCode] = useState(""); const [request, setRequest] = useState(null); const [error, setError] = useState("");
+  const [begin, { loading: sending }] = useMutation(BEGIN_BYU); const [verify, { loading: verifying }] = useMutation(VERIFY_BYU);
+  const send = async (event) => { event.preventDefault(); try { setError(""); const { data } = await begin({ variables: { input: { email } } }); setRequest(data.beginByuPathwayVerification); } catch (err) { setError(academyError(err)); } };
+  const confirm = async (event) => { event.preventDefault(); try { setError(""); const { data } = await verify({ variables: { input: { verificationId: request.subjectId, code } } }); sessionStorage.setItem("katelByuProofGrant", JSON.stringify({ ...data.verifyByuPathwayEmail, courseId, email: request.email, developmentCode: request.developmentCode })); navigate("/academy/byu-upload"); } catch (err) { setError(academyError(err)); } };
+  return <AcademyShell title="Request the BYU Pathway fee" description="This is separate from your portal account. Verify the email you control, submit proof, then an authorized reviewer decides the request."><div className="mx-auto max-w-xl rounded-3xl bg-white p-7 shadow-xl ring-1 ring-slate-200">{!request ? <form onSubmit={send} className="space-y-5"><label className="block text-sm font-semibold text-slate-700">Email address<input required type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="mt-2 w-full rounded-xl border px-4 py-3" /></label>{error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={sending} className="w-full rounded-xl bg-[#003F8E] py-3.5 font-bold text-white">{sending ? "Sending code…" : "Send verification code"}</button></form> : <form onSubmit={confirm} className="space-y-5"><p className="text-slate-600">We sent a code to <strong>{request.email}</strong>.</p><input required maxLength="6" inputMode="numeric" value={code} onChange={(e)=>setCode(e.target.value.replace(/\D/g,""))} className="w-full rounded-xl border px-4 py-4 text-center text-2xl tracking-[.4em]" placeholder="000000" />{request.developmentCode && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Development code: <strong>{request.developmentCode}</strong></p>}{error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={verifying} className="w-full rounded-xl bg-[#003F8E] py-3.5 font-bold text-white">{verifying ? "Verifying…" : "Verify and continue"}</button></form>}</div></AcademyShell>;
 }

@@ -71,6 +71,9 @@ async function main() {
         userId: learner.id,
         courseId: course.id,
         status: 'APPROVED',
+        feeCategory: 'FIRST_TIME',
+        feeAmount: 50000,
+        currency: 'UGX',
         verifiedAt: new Date(),
       },
     }));

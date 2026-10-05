@@ -170,8 +170,8 @@ export class AcademyQuestionOption {
   @Field(() => Int)
   order!: number;
 
-  @Field(() => Boolean)
-  isCorrect!: boolean;
+  @Field(() => Boolean, { nullable: true })
+  isCorrect?: boolean;
 }
 
 @ObjectType()

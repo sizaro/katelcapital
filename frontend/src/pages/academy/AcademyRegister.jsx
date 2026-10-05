@@ -1,116 +1,14 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import AcademyShell from "./AcademyShell";
+import { academyError, BEGIN_LEARNER_ACCOUNT, PUBLIC_ACADEMY_COURSES } from "./academyFlow";
 
 export default function AcademyRegister() {
-  const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (!normalizedEmail) {
-      setError("Please enter your email address.");
-      return;
-    }
-
-    setError("");
-
-    sessionStorage.setItem(
-      "katelAcademyApplication",
-      JSON.stringify({
-        email: normalizedEmail,
-        emailVerified: false,
-      }),
-    );
-
-    navigate("/academy/verify-email");
-  };
-
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main>
-        <section className="bg-[#003F8E] px-6 py-16 text-white md:py-20">
-          <div className="mx-auto max-w-4xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#F7C621]">
-              Katel Academy
-            </p>
-
-            <h1 className="text-4xl font-bold md:text-5xl">
-              Start your Academy journey
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100">
-              Enter your email address to begin. We&apos;ll send you a
-              verification code before you continue with the Academy process.
-            </p>
-          </div>
-        </section>
-
-        <section className="px-6 py-16 md:py-20">
-          <div className="mx-auto max-w-xl">
-            <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-10">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-[#003F8E]">
-                  Verify your email
-                </h2>
-
-                <p className="mt-2 leading-7 text-gray-600">
-                  Enter the email address you want to use for your Katel Academy
-                  journey. We&apos;ll send a verification code to this address.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Email address
-                  </label>
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      setError("");
-                    }}
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#003F8E] focus:ring-2 focus:ring-[#003F8E]/10"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                {error && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full rounded-full bg-[#003F8E] px-8 py-3.5 font-bold text-white transition hover:opacity-90"
-                >
-                  Send Verification Code
-                </button>
-              </form>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  const navigate = useNavigate(); const [params] = useSearchParams(); const courseId = params.get("course");
+  const { data, loading } = useQuery(PUBLIC_ACADEMY_COURSES); const [begin, { loading: saving }] = useMutation(BEGIN_LEARNER_ACCOUNT);
+  const [email, setEmail] = useState(""); const [byu, setByu] = useState(false); const [error, setError] = useState("");
+  const course = data?.publicAcademyCourses?.find((item) => item.id === courseId);
+  const submit = async (event) => { event.preventDefault(); if (!courseId) return setError("Choose a course before registering."); try { setError(""); const { data: result } = await begin({ variables: { input: { courseId, email } } }); sessionStorage.setItem("katelAcademyApplication", JSON.stringify({ applicantId: result.beginAcademyLearnerAccount.subjectId, email: result.beginAcademyLearnerAccount.email, courseId, isByu: byu })); navigate("/academy/verify-email"); } catch (err) { setError(academyError(err)); } };
+  return <AcademyShell title="Verify your email to begin" description="Your email is your Academy identity until payment. No learner portal account is created at this stage."><div className="mx-auto max-w-2xl rounded-3xl bg-white p-6 shadow-xl ring-1 ring-slate-200 md:p-10"><div className="mb-7 rounded-2xl bg-blue-50 p-4 text-sm text-slate-700">{loading ? "Loading course…" : course ? <><strong>{course.title}</strong><br />{course.durationWeeks} week{course.durationWeeks === 1 ? "" : "s"} · {course.code}</> : <>No course selected. <Link className="font-bold text-[#003F8E] underline" to="/academy">Choose a course</Link>.</>}</div><form onSubmit={submit} className="space-y-5"><label className="block text-sm font-semibold text-slate-700">Email address<input required type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="mt-2 w-full rounded-xl border px-4 py-3" /></label><label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm text-slate-700"><input type="checkbox" checked={byu} onChange={(e)=>setByu(e.target.checked)} className="mt-1" /><span><strong>Request the BYU Pathway fee</strong><br /><span className="text-slate-500">After email verification, you will upload proof for review. Otherwise you proceed directly to payment.</span></span></label>{error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={saving || !course} className="w-full rounded-xl bg-[#003F8E] px-5 py-3.5 font-bold text-white disabled:opacity-50">{saving ? "Sending verification code…" : "Send verification code"}</button></form></div></AcademyShell>;
 }

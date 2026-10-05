@@ -16,6 +16,7 @@ import AcademyMobileMoney from "./pages/academy/AcademyMobileMoney.jsx";
 import AcademyPaymentProcessing from "./pages/academy/AcademyPaymentProcessing.jsx";
 import AcademyPaymentSuccess from "./pages/academy/AcademyPaymentSuccess.jsx";
 import AcademyActivate from "./pages/academy/AcademyActivate.jsx";
+import AcademyByuContinue from "./pages/academy/AcademyByuContinue.jsx";
 
 import Contact from "./pages/landing/Contact.jsx";
 import Home from "./pages/landing/Home.jsx";
@@ -52,6 +53,7 @@ export default function App() {
       />
       <Route path="/academy/byu-upload" element={<AcademyByuUpload />} />
       <Route path="/academy/byu-review" element={<AcademyByuReview />} />
+      <Route path="/academy/byu/continue" element={<AcademyByuContinue />} />
       <Route path="/academy/payment" element={<AcademyPayment />} />
       <Route
         path="/academy/payment/mobile-money"

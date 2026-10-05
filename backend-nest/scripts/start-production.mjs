@@ -42,18 +42,15 @@ async function main() {
     await database.query('SELECT pg_advisory_lock(72431, 1)');
     console.log('[deploy] Applying pending migrations...');
     await run('../node_modules/prisma/build/index.js', ['migrate', 'deploy']);
-    const marker = await database.query('SELECT id FROM "SystemSetting" WHERE key = $1', [bootstrapKey]);
-    if (marker.rowCount === 0) {
-      console.log('[deploy] Initializing roles, reference data, and Super Admin...');
-      await run('../node_modules/tsx/dist/cli.mjs', ['prisma/seed.ts']);
-      await database.query(
-        'INSERT INTO "SystemSetting" (id, key, value, "updatedAt") VALUES (gen_random_uuid(), $1, $2::jsonb, NOW()) ON CONFLICT (key) DO NOTHING',
-        [bootstrapKey, JSON.stringify({ completedAt: new Date().toISOString() })],
-      );
-      console.log('[deploy] Initial seed completed. Future startups will skip it.');
-    } else {
-      console.log('[deploy] Initial seed already completed; preserving existing installation.');
-    }
+    // The seed uses upserts, so it is safe to run on each deploy. This lets a
+    // later deployment add newly configured production reviewer accounts and
+    // reference permissions without replacing existing installation data.
+    console.log('[deploy] Synchronizing roles, permissions, reference data, and configured seed accounts...');
+    await run('../node_modules/tsx/dist/cli.mjs', ['prisma/seed.ts']);
+    await database.query(
+      'INSERT INTO "SystemSetting" (id, key, value, "updatedAt") VALUES (gen_random_uuid(), $1, $2::jsonb, NOW()) ON CONFLICT (key) DO UPDATE SET "updatedAt" = NOW()',
+      [bootstrapKey, JSON.stringify({ synchronizedAt: new Date().toISOString() })],
+    );
   } finally {
     await database.end(); // Also releases the advisory lock.
   }

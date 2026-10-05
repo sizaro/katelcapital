@@ -61,6 +61,47 @@ enum EnrollmentStatus {
   WITHDRAWN
 }
 
+enum PaymentProvider {
+  MTN_MOMO
+  AIRTEL_MONEY
+}
+
+enum PaymentProviderStatus {
+  INITIATED
+  PENDING
+  CONFIRMED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum AcademyRegistrationFeeCategory {
+  FIRST_TIME
+  BYU_PATHWAY
+  RE_ENROLLMENT
+}
+
+enum ByuPathwayVerificationStatus {
+  EMAIL_PENDING
+  EMAIL_VERIFIED
+  PROOF_SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum ByuPathwayTokenPurpose {
+  EMAIL_VERIFICATION
+  PROOF_SUBMISSION
+  REGISTRATION_CONTINUATION
+}
+
+enum AcademyApplicantTokenPurpose {
+  EMAIL_VERIFICATION
+  PAYMENT_ACTIVATION
+}
+
 enum WorkflowStatus {
   DRAFT
   OPEN
@@ -213,12 +254,15 @@ model User {
   resetTokens              PasswordResetToken[]
   logins                   LoginHistory[]
   academyRegistrations     AcademyRegistration[]
+  academyApplicants        AcademyApplicant[]
   enrollments              AcademyEnrollment[]
+  byuPathwayVerifications  ByuPathwayVerification[]     @relation("ByuPathwayVerificationUser")
   completions              AcademyCompletion[]
   academyAssessmentReviews AcademyAssessmentAttempt[]   @relation("AcademyAssessmentReviewers")
   academyQuestionReviews   AcademyQuestionResponse[]    @relation("AcademyQuestionReviewers")
   academyAttendanceRecords AcademyGatheringAttendance[] @relation("AcademyAttendanceRecorders")
   academyReadinessReviews  AcademyReadiness[]           @relation("AcademyReadinessReviewers")
+  byuPathwayReviews        ByuPathwayVerification[]     @relation("ByuPathwayVerificationReviewer")
   professional             ProfessionalProfile?
   organizations            OrganizationUser[]
   notifications            Notification[]
@@ -286,9 +330,10 @@ model AcademyCourse {
   code          String                @unique
   title         String
   description   String?
-  durationWeeks Int                   @default(1)
+  durationWeeks Int
   isActive      Boolean               @default(true)
   registrations AcademyRegistration[]
+  applicants    AcademyApplicant[]
   weeks         AcademyWeek[]
   enrollments   AcademyEnrollment[]
   assessments   AcademyAssessment[]
@@ -444,7 +489,7 @@ model AcademyAssessment {
   status       AcademyContentStatus        @default(DRAFT)
   isActive     Boolean                     @default(true)
   course       AcademyCourse               @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  session      AcademySession?             @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  session      AcademySession?             @relation(fields: [sessionId], references: [id], onDelete: Restrict)
   questions    AcademyAssessmentQuestion[]
   attempts     AcademyAssessmentAttempt[]
   createdAt    DateTime                    @default(now())
@@ -567,20 +612,103 @@ model AcademyReadiness {
 }
 
 model AcademyRegistration {
-  id         String             @id @default(uuid()) @db.Uuid
-  userId     String             @db.Uuid
-  courseId   String             @db.Uuid
-  status     WorkflowStatus     @default(OPEN)
-  verifiedAt DateTime?
-  paymentId  String?            @unique @db.Uuid
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  user       User               @relation(fields: [userId], references: [id], onDelete: Restrict)
-  course     AcademyCourse      @relation(fields: [courseId], references: [id], onDelete: Restrict)
-  payment    Payment?           @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-  enrollment AcademyEnrollment?
+  id          String                         @id @default(uuid()) @db.Uuid
+  userId      String                         @db.Uuid
+  courseId    String                         @db.Uuid
+  status      WorkflowStatus                 @default(OPEN)
+  feeCategory AcademyRegistrationFeeCategory @default(FIRST_TIME)
+  feeAmount   Decimal                        @db.Decimal(14, 2)
+  currency    String                         @default("UGX")
+  verifiedAt  DateTime?
+  paymentId   String?                        @unique @db.Uuid
+  createdAt   DateTime                       @default(now())
+  updatedAt   DateTime                       @updatedAt
+  user        User                           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course      AcademyCourse                  @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  payment     Payment?                       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  enrollment  AcademyEnrollment?
 
   @@index([userId, courseId, status])
+}
+
+/// A pre-payment Academy applicant is deliberately not a portal user.  It holds
+/// only the information needed to verify the email and complete payment; the
+/// actual User, registration and enrollment are created atomically after the
+/// confirmed-payment activation link is used.
+model AcademyApplicant {
+  id                       String                         @id @default(uuid()) @db.Uuid
+  email                    String
+  firstName                String?
+  lastName                 String?
+  passwordHash             String?
+  courseId                 String                         @db.Uuid
+  emailVerifiedAt          DateTime?
+  feeCategory              AcademyRegistrationFeeCategory @default(FIRST_TIME)
+  feeAmount                Decimal                        @db.Decimal(14, 2)
+  currency                 String                         @default("UGX")
+  byuPathwayVerificationId String?                        @unique @db.Uuid
+  paymentId                String?                        @unique @db.Uuid
+  createdUserId            String?                        @unique @db.Uuid
+  createdAt                DateTime                       @default(now())
+  updatedAt                DateTime                       @updatedAt
+  course                   AcademyCourse                  @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  byuPathwayVerification   ByuPathwayVerification?        @relation(fields: [byuPathwayVerificationId], references: [id], onDelete: SetNull)
+  payment                  Payment?                       @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  createdUser              User?                          @relation(fields: [createdUserId], references: [id], onDelete: SetNull)
+  tokens                   AcademyApplicantVerificationToken[]
+
+  @@index([email, courseId])
+  @@index([courseId, emailVerifiedAt])
+}
+
+model AcademyApplicantVerificationToken {
+  id          String           @id @default(uuid()) @db.Uuid
+  applicantId String           @db.Uuid
+  purpose     AcademyApplicantTokenPurpose @default(EMAIL_VERIFICATION)
+  tokenHash   String           @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime         @default(now())
+  applicant   AcademyApplicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId, expiresAt])
+}
+
+model ByuPathwayVerification {
+  id              String                        @id @default(uuid()) @db.Uuid
+  email           String
+  emailVerifiedAt DateTime?
+  userId          String?                       @db.Uuid
+  proofDocumentId String?                       @unique @db.Uuid
+  status          ByuPathwayVerificationStatus  @default(EMAIL_PENDING)
+  reviewedById    String?                       @db.Uuid
+  reviewedAt      DateTime?
+  rejectionReason String?
+  reviewNote      String?
+  createdAt       DateTime                      @default(now())
+  updatedAt       DateTime                      @updatedAt
+  user            User?                         @relation("ByuPathwayVerificationUser", fields: [userId], references: [id], onDelete: SetNull)
+  proofDocument   Document?                     @relation("ByuPathwayVerificationProof", fields: [proofDocumentId], references: [id], onDelete: SetNull)
+  reviewedBy      User?                         @relation("ByuPathwayVerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  tokens          ByuPathwayVerificationToken[]
+  academyApplicant AcademyApplicant?
+
+  @@index([email, status])
+  @@index([userId, status])
+  @@index([reviewedById, status])
+}
+
+model ByuPathwayVerificationToken {
+  id             String                 @id @default(uuid()) @db.Uuid
+  verificationId String                 @db.Uuid
+  purpose        ByuPathwayTokenPurpose
+  tokenHash      String                 @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime               @default(now())
+  verification   ByuPathwayVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+
+  @@index([verificationId, purpose, expiresAt])
 }
 
 model AcademyEnrollment {
@@ -994,28 +1122,40 @@ model Notification {
 }
 
 model Document {
-  id          String   @id @default(uuid()) @db.Uuid
-  ownerId     String   @db.Uuid
-  storageKey  String
-  fileName    String
-  mimeType    String
-  category    String
-  sensitivity String   @default("STANDARD")
-  createdAt   DateTime @default(now())
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  id              String                  @id @default(uuid()) @db.Uuid
+  ownerId         String?                 @db.Uuid
+  storageKey      String
+  fileName        String
+  mimeType        String
+  category        String
+  sensitivity     String                  @default("STANDARD")
+  createdAt       DateTime                @default(now())
+  owner           User?                   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  byuPathwayProof ByuPathwayVerification? @relation("ByuPathwayVerificationProof")
 }
 
 model Payment {
-  id                  String               @id @default(uuid()) @db.Uuid
-  userId              String?              @db.Uuid
-  reference           String               @unique
-  amount              Decimal              @db.Decimal(14, 2)
-  currency            String               @default("UGX")
+  id                  String                @id @default(uuid()) @db.Uuid
+  userId              String?               @db.Uuid
+  reference           String                @unique
+  amount              Decimal               @db.Decimal(14, 2)
+  currency            String                @default("UGX")
   purpose             String
-  status              WorkflowStatus       @default(OPEN)
-  user                User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  status              WorkflowStatus        @default(OPEN)
+  provider            PaymentProvider?
+  providerStatus      PaymentProviderStatus @default(INITIATED)
+  payerPhone          String?
+  providerReference   String?               @unique
+  confirmationPayload Json?
+  confirmedAt         DateTime?
+  failedAt            DateTime?
+  failureReason       String?
+  user                User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   academyRegistration AcademyRegistration?
-  createdAt           DateTime             @default(now())
+  academyApplicant    AcademyApplicant?
+  createdAt           DateTime              @default(now())
+
+  @@index([userId, providerStatus])
 }
 
 model AuditLog {

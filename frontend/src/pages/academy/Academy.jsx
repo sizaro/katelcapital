@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useQuery } from "@apollo/client/react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import { PUBLIC_ACADEMY_COURSES } from "./academyFlow";
 
 const pathwaySteps = [
   {
@@ -83,9 +85,10 @@ function PathwayStep({ step, isOpen, onToggle }) {
 export default function Academy() {
   const navigate = useNavigate();
   const [openStep, setOpenStep] = useState(0);
+  const { data, loading, error } = useQuery(PUBLIC_ACADEMY_COURSES);
 
   const handleStartAcademy = () => {
-    navigate("/academy/register");
+    document.getElementById("academy-courses")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleToggleStep = (index) => {
@@ -140,6 +143,16 @@ export default function Academy() {
               </button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="academy-courses" className="bg-slate-50 px-6 py-20 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 flex flex-col justify-between gap-3 md:flex-row md:items-end"><div><p className="text-sm font-semibold uppercase tracking-wider text-[#003F8E]">Available learning</p><h2 className="mt-2 text-3xl font-bold text-[#003F8E]">Choose an Academy course</h2></div><p className="max-w-xl text-sm leading-6 text-slate-600">Your fee is determined safely by the platform after account verification; the course page never decides it.</p></div>
+          {loading && <p className="rounded-2xl bg-white p-6 text-slate-600 shadow-sm">Loading available courses…</p>}
+          {error && <p className="rounded-2xl bg-red-50 p-6 text-red-700">Courses could not be loaded. Please refresh and try again.</p>}
+          {!loading && !error && !data?.publicAcademyCourses?.length && <p className="rounded-2xl bg-white p-6 text-slate-600 shadow-sm">No Academy courses are open for registration yet.</p>}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{data?.publicAcademyCourses?.map((course) => <article key={course.id} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p className="text-xs font-bold tracking-wider text-[#003F8E]">{course.code}</p><h3 className="mt-3 text-xl font-bold text-slate-900">{course.title}</h3><p className="mt-3 min-h-12 text-sm leading-6 text-slate-600">{course.description || "Structured Academy learning for professional readiness."}</p><p className="mt-5 text-sm font-semibold text-slate-700">{course.durationWeeks} week{course.durationWeeks === 1 ? "" : "s"}</p><button onClick={() => navigate(`/academy/register?course=${course.id}`)} className="mt-6 w-full rounded-xl bg-[#003F8E] px-4 py-3 font-bold text-white">Begin course application</button></article>)}</div>
         </div>
       </section>
 

@@ -129,8 +129,21 @@ export class AcademyService {
                       include: {
                         media: true,
                         question: {
-                          include: {
+                          select: {
+                            id: true,
+                            prompt: true,
+                            type: true,
+                            points: true,
+                            gradingMode: true,
+                            explanation: true,
+                            createdAt: true,
+                            updatedAt: true,
                             options: {
+                              select: {
+                                id: true,
+                                text: true,
+                                order: true,
+                              },
                               orderBy: {
                                 order: 'asc',
                               },
@@ -167,6 +180,10 @@ export class AcademyService {
       throw new BadRequestException('Course title is required.');
     }
 
+    if (!Number.isInteger(input.durationWeeks) || input.durationWeeks < 1) {
+      throw new BadRequestException('Course duration must be at least 1 week.');
+    }
+
     const existingCourse = await this.prisma.academyCourse.findUnique({
       where: {
         code,
@@ -184,6 +201,7 @@ export class AcademyService {
         code,
         title,
         description,
+        durationWeeks: input.durationWeeks,
       },
       include: this.courseInclude,
     });
@@ -214,6 +232,16 @@ export class AcademyService {
 
     if (input.description !== undefined) {
       data.description = this.cleanOptionalString(input.description);
+    }
+
+    if (input.durationWeeks !== undefined) {
+      if (!Number.isInteger(input.durationWeeks) || input.durationWeeks < 1) {
+        throw new BadRequestException(
+          'Course duration must be at least 1 week.',
+        );
+      }
+
+      data.durationWeeks = input.durationWeeks;
     }
 
     if (input.isActive !== undefined) {

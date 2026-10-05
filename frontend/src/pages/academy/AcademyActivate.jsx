@@ -1,145 +1,15 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
+import { useMutation } from "@apollo/client/react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import AcademyShell from "./AcademyShell";
+import { academyError, ACTIVATE_ACADEMY_APPLICANT } from "./academyFlow";
+import { useAuth } from "../../features/auth/AuthProvider";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function AcademyActivate() {
-  const navigate = useNavigate();
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (password.length < 6) {
-      setError("Password must contain at least 6 characters.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    const stored = sessionStorage.getItem("katelAcademyApplication");
-
-    if (!stored) {
-      navigate("/academy/register", { replace: true });
-      return;
-    }
-
-    const application = JSON.parse(stored);
-
-    sessionStorage.setItem(
-      "katelAcademyApplication",
-      JSON.stringify({
-        ...application,
-        accountActivated: true,
-      }),
-    );
-
-    sessionStorage.setItem("katelAcademyLearnerAuthenticated", "true");
-
-    navigate("/portal/academy");
-  };
-
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main>
-        <section className="bg-[#003F8E] px-6 py-16 text-white md:py-20">
-          <div className="mx-auto max-w-4xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#F7C621]">
-              Katel Academy
-            </p>
-            <h1 className="text-4xl font-bold md:text-5xl">
-              Activate your Academy account
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100">
-              Your payment is complete. Create your Academy password to
-              activate your learner account.
-            </p>
-          </div>
-        </section>
-
-        <section className="px-6 py-16 md:py-20">
-          <div className="mx-auto max-w-xl">
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-10"
-            >
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Email
-                </label>
-
-                <p className="rounded-xl bg-gray-50 px-4 py-3 text-gray-700">
-                  {JSON.parse(
-                    sessionStorage.getItem("katelAcademyApplication") || "{}",
-                  ).email || ""}
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
-                >
-                  Password
-                </label>
-
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    setError("");
-                  }}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#003F8E] focus:ring-2 focus:ring-[#003F8E]/10"
-                />
-              </div>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="confirmPassword"
-                  className="mb-2 block text-sm font-semibold text-gray-700"
-                >
-                  Confirm password
-                </label>
-
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => {
-                    setConfirmPassword(event.target.value);
-                    setError("");
-                  }}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#003F8E] focus:ring-2 focus:ring-[#003F8E]/10"
-                />
-              </div>
-
-              {error && (
-                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="mt-8 w-full rounded-full bg-[#003F8E] px-8 py-3.5 font-bold text-white"
-              >
-                Create Academy Account
-              </button>
-            </form>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  const navigate = useNavigate(); const { login } = useAuth(); const [params] = useSearchParams(); const token = params.get("token") || "";
+  const [form, setForm] = useState({ firstName: "", lastName: "", password: "", confirmPassword: "" }); const [error, setError] = useState(""); const [showPassword, setShowPassword] = useState(false); const [showConfirmation, setShowConfirmation] = useState(false);
+  const [activate, { loading }] = useMutation(ACTIVATE_ACADEMY_APPLICANT);
+  const submit = async (event) => { event.preventDefault(); if (!token) return setError("This activation link is missing or invalid."); if (form.password !== form.confirmPassword) return setError("Passwords do not match."); try { setError(""); await activate({ variables: { input: { token, firstName: form.firstName, lastName: form.lastName, password: form.password } } }); const email = params.get("email"); if (email) await login(email, form.password); navigate("/portal/academy", { replace: true }); } catch (err) { setError(academyError(err)); } };
+  return <AcademyShell title="Activate your Academy account" description="Payment is confirmed. Finish your portal account with your name and password to begin learning."><form onSubmit={submit} className="mx-auto grid max-w-xl gap-5 rounded-3xl bg-white p-7 shadow-xl ring-1 ring-slate-200 sm:grid-cols-2"><label className="text-sm font-semibold text-slate-700 sm:col-span-2">Verified email<p className="mt-2 rounded-xl bg-slate-50 px-4 py-3 font-normal text-slate-700">{params.get("email") || "Verified Academy email"}</p></label><label className="text-sm font-semibold text-slate-700">First name<input required value={form.firstName} onChange={(e)=>setForm({...form,firstName:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3" /></label><label className="text-sm font-semibold text-slate-700">Last name<input required value={form.lastName} onChange={(e)=>setForm({...form,lastName:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3" /></label><label className="text-sm font-semibold text-slate-700 sm:col-span-2">Create password<div className="relative mt-2"><input required minLength="12" type={showPassword ? "text" : "password"} value={form.password} onChange={(e)=>setForm({...form,password:e.target.value})} className="w-full rounded-xl border px-4 py-3 pr-12" /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={()=>setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 text-slate-500 hover:text-[#003F8E]">{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></div></label><label className="text-sm font-semibold text-slate-700 sm:col-span-2">Confirm password<div className="relative mt-2"><input required minLength="12" type={showConfirmation ? "text" : "password"} value={form.confirmPassword} onChange={(e)=>setForm({...form,confirmPassword:e.target.value})} className="w-full rounded-xl border px-4 py-3 pr-12" /><button type="button" aria-label={showConfirmation ? "Hide password confirmation" : "Show password confirmation"} onClick={()=>setShowConfirmation(!showConfirmation)} className="absolute inset-y-0 right-3 text-slate-500 hover:text-[#003F8E]">{showConfirmation ? <EyeOff size={19} /> : <Eye size={19} />}</button></div></label>{error && <p className="sm:col-span-2 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="sm:col-span-2 rounded-xl bg-[#003F8E] py-3.5 font-bold text-white disabled:opacity-50">{loading ? "Activating…" : "Create account and open Academy"}</button></form></AcademyShell>;
 }

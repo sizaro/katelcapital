@@ -1,111 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
+import AcademyShell from "./AcademyShell";
 
+const apiBase = (import.meta.env.VITE_GRAPHQL_URL || "http://localhost:3000/graphql").replace(/\/graphql$/, "");
 export default function AcademyByuUpload() {
-  const navigate = useNavigate();
-  const [file, setFile] = useState(null);
-  const [error, setError] = useState("");
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (!file) {
-      setError("Please select your BYU-Pathway proof document.");
-      return;
-    }
-
-    const stored = sessionStorage.getItem("katelAcademyApplication");
-
-    if (!stored) {
-      navigate("/academy/register", { replace: true });
-      return;
-    }
-
-    const application = JSON.parse(stored);
-
-    sessionStorage.setItem(
-      "katelAcademyApplication",
-      JSON.stringify({
-        ...application,
-        byuDocumentUploaded: true,
-        byuDocumentName: file.name,
-        byuReviewStatus: "PENDING",
-      }),
-    );
-
-    navigate("/academy/byu-review");
-  };
-
-  return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-
-      <main>
-        <section className="bg-[#003F8E] px-6 py-16 text-white md:py-20">
-          <div className="mx-auto max-w-4xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#F7C621]">
-              Katel Academy
-            </p>
-            <h1 className="text-4xl font-bold md:text-5xl">
-              Submit your BYU-Pathway proof
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100">
-              Upload a document that can be used to review your BYU-Pathway
-              graduate status.
-            </p>
-          </div>
-        </section>
-
-        <section className="px-6 py-16 md:py-20">
-          <div className="mx-auto max-w-2xl">
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-10"
-            >
-              <h2 className="text-2xl font-bold text-[#003F8E]">
-                Upload document
-              </h2>
-
-              <p className="mt-3 leading-7 text-gray-600">
-                For development, selecting any document is enough to simulate
-                the upload.
-              </p>
-
-              <input
-                type="file"
-                onChange={(event) => {
-                  setFile(event.target.files?.[0] || null);
-                  setError("");
-                }}
-                className="mt-8 block w-full rounded-xl border border-gray-300 p-3"
-              />
-
-              {file && (
-                <p className="mt-3 text-sm text-gray-600">
-                  Selected: {file.name}
-                </p>
-              )}
-
-              {error && (
-                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="mt-8 w-full rounded-full bg-[#003F8E] px-8 py-3.5 font-bold text-white transition hover:opacity-90"
-              >
-                Submit for Review
-              </button>
-            </form>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  const navigate = useNavigate(); const grant = useMemo(() => { try { return JSON.parse(sessionStorage.getItem("katelByuProofGrant") || "null"); } catch { return null; } }, []);
+  const [file, setFile] = useState(null); const [error, setError] = useState(""); const [loading, setLoading] = useState(false);
+  const submit = async (event) => { event.preventDefault(); if (!grant) return navigate("/academy/byu-verification", { replace: true }); if (!file) return setError("Choose a PDF or image proof document."); try { setError(""); setLoading(true); const body = new FormData(); body.append("file", file); body.append("verificationId", grant.verificationId); body.append("submissionToken", grant.submissionToken); const response = await fetch(`${apiBase}/uploads/byu-proof`, { method: "POST", body }); const payload = await response.json().catch(() => ({})); if (!response.ok) throw new Error(payload.message || "Proof upload failed."); sessionStorage.removeItem("katelByuProofGrant"); navigate("/academy/byu-review"); } catch (err) { setError(err.message || "Proof upload failed."); } finally { setLoading(false); } };
+  return <AcademyShell title="Submit BYU Pathway proof" description="Your document is compressed safely when appropriate, stored separately from a portal account, and sent to the authorized review queue."><form onSubmit={submit} className="mx-auto max-w-xl rounded-3xl bg-white p-7 shadow-xl ring-1 ring-slate-200"><input required accept="image/jpeg,image/png,image/webp,application/pdf" type="file" onChange={(e)=>setFile(e.target.files?.[0] || null)} className="w-full rounded-xl border p-3" />{file && <p className="mt-3 text-sm text-slate-600">Selected: {file.name}</p>}<p className="mt-4 text-sm leading-6 text-slate-500">Accepted: PDF, JPG, PNG or WebP. Maximum 10 MB.</p>{error && <p className="mt-5 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="mt-6 w-full rounded-xl bg-[#003F8E] py-3.5 font-bold text-white disabled:opacity-50">{loading ? "Uploading proof…" : "Submit proof for review"}</button></form></AcademyShell>;
 }

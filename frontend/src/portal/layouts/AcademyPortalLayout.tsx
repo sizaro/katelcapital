@@ -31,6 +31,7 @@ const ACADEMY_COURSES_QUERY = gql`
       code
       title
       description
+      durationWeeks
       isActive
       createdAt
       updatedAt
@@ -101,6 +102,7 @@ const MY_ACADEMY_COURSES_QUERY = gql`
       code
       title
       description
+      durationWeeks
       isActive
       weeks {
         id
@@ -146,19 +148,74 @@ const MY_ACADEMY_COURSES_QUERY = gql`
               type
               points
               gradingMode
-              correctAnswer
               explanation
               options {
                 id
                 text
                 order
-                isCorrect
               }
             }
           }
         }
       }
     }
+  }
+`;
+
+const MARK_BLOCK_COMPLETE_MUTATION = gql`
+  mutation MarkAcademyBlockComplete($contentBlockId: ID!) {
+    markAcademyContentBlockComplete(contentBlockId: $contentBlockId) { id enrolledAt expiresAt }
+  }
+`;
+
+const MY_ACADEMY_ASSESSMENTS_QUERY = gql`
+  query MyAcademyAssessments($courseId: ID!) {
+    myAcademyAssessments(courseId: $courseId) { id type title description passingScore }
+  }
+`;
+
+const START_ACADEMY_ASSESSMENT_MUTATION = gql`
+  mutation StartAcademyAssessment($assessmentId: ID!) {
+    startAcademyAssessment(assessmentId: $assessmentId) {
+      id assessmentId assessmentType title status
+      questions { id prompt type points options { id text order } }
+    }
+  }
+`;
+
+const SUBMIT_ACADEMY_ASSESSMENT_MUTATION = gql`
+  mutation SubmitAcademyAssessment($input: SubmitAcademyAssessmentInput!) {
+    submitAcademyAssessment(input: $input) { passed percentage enrollment { id enrolledAt expiresAt } }
+  }
+`;
+
+const BYU_REVIEW_QUEUE_QUERY = gql`
+  query ByuReviewQueue {
+    byuPathwayReviewQueue { id email status proofFileName proofPreviewUrl }
+  }
+`;
+
+const REVIEW_BYU_MUTATION = gql`
+  mutation ReviewByu($input: ReviewByuPathwayVerificationInput!) {
+    reviewByuPathwayVerification(input: $input) { id status rejectionReason }
+  }
+`;
+
+const CREATE_ACADEMY_ASSESSMENT_MUTATION = gql`
+  mutation CreateAcademyAssessment($input: CreateAcademyAssessmentInput!) {
+    createAcademyAssessment(input: $input) { id title type status }
+  }
+`;
+
+const ADD_ASSESSMENT_QUESTION_MUTATION = gql`
+  mutation AddAssessmentQuestion($input: AddAcademyAssessmentQuestionInput!) {
+    addAcademyAssessmentQuestion(input: $input)
+  }
+`;
+
+const PUBLISH_ASSESSMENT_MUTATION = gql`
+  mutation PublishAcademyAssessment($id: ID!) {
+    publishAcademyAssessment(id: $id) { id title status }
   }
 `;
 
@@ -169,6 +226,7 @@ const CREATE_ACADEMY_COURSE_MUTATION = gql`
       code
       title
       description
+      durationWeeks
       isActive
       createdAt
       updatedAt
@@ -211,6 +269,7 @@ const UPDATE_ACADEMY_COURSE_MUTATION = gql`
       code
       title
       description
+      durationWeeks
       isActive
       createdAt
       updatedAt
@@ -537,6 +596,7 @@ type AcademyCourse = {
   code: string;
   title: string;
   description?: string | null;
+  durationWeeks: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -668,6 +728,7 @@ function CourseForm({
   const [code, setCode] = useState(course?.code ?? "");
   const [title, setTitle] = useState(course?.title ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
+  const [durationWeeks, setDurationWeeks] = useState(String(course?.durationWeeks ?? 4));
   const [formError, setFormError] = useState("");
 
   const [createCourse, { loading: creating }] =
@@ -692,6 +753,12 @@ function CourseForm({
       return;
     }
 
+    const parsedDuration = Number(durationWeeks);
+    if (!Number.isInteger(parsedDuration) || parsedDuration < 1) {
+      setFormError("Course duration must be at least one week.");
+      return;
+    }
+
     try {
       if (isEditing && course) {
         await updateCourse({
@@ -700,6 +767,7 @@ function CourseForm({
             input: {
               title: title.trim(),
               description: description.trim() || null,
+              durationWeeks: parsedDuration,
               isActive: course.isActive,
             },
           },
@@ -711,6 +779,7 @@ function CourseForm({
               code: code.trim().toUpperCase(),
               title: title.trim(),
               description: description.trim() || null,
+              durationWeeks: parsedDuration,
             },
           },
         });
@@ -752,6 +821,11 @@ function CourseForm({
             />
           </div>
         )}
+
+        <div>
+          <label htmlFor="academy-course-duration" className="mb-2 block text-sm font-semibold text-slate-700">Course duration (weeks)</label>
+          <input id="academy-course-duration" type="number" min="1" value={durationWeeks} onChange={(event) => setDurationWeeks(event.target.value)} className={inputClassName} />
+        </div>
 
         <div>
           <label
@@ -1820,6 +1894,7 @@ function CourseContentManager({
   );
   const [editingContentBlock, setEditingContentBlock] =
     useState<AcademyContentBlock | null>(null);
+  const [showAssessmentForm, setShowAssessmentForm] = useState(false);
 
   const toggleWeek = (weekId: string) => {
     setExpandedWeeks((current) => {
@@ -1954,14 +2029,7 @@ function CourseContentManager({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={openCreateWeek}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#003F8E] px-5 py-3 text-sm font-semibold text-white hover:bg-[#003477]"
-              >
-                <Plus size={18} />
-                Add week
-              </button>
+              <div className="flex flex-wrap gap-3"><button type="button" onClick={() => setShowAssessmentForm(true)} className="flex items-center justify-center gap-2 rounded-xl border border-[#003F8E] px-5 py-3 text-sm font-semibold text-[#003F8E] hover:bg-blue-50"><ClipboardCheck size={18} />Add assessment</button><button type="button" onClick={openCreateWeek} className="flex items-center justify-center gap-2 rounded-xl bg-[#003F8E] px-5 py-3 text-sm font-semibold text-white hover:bg-[#003477]"><Plus size={18} />Add week</button></div>
             </div>
           </div>
 
@@ -2301,6 +2369,8 @@ function CourseContentManager({
           onSaved={onChanged}
         />
       )}
+
+      {showAssessmentForm && <AssessmentBuilder course={course} onClose={() => setShowAssessmentForm(false)} />}
     </>
   );
 }
@@ -2463,6 +2533,8 @@ function AcademyManagerDashboard() {
             description={`${totalSessions} sessions currently organized.`}
           />
         </div>
+
+        <ByuReviewQueue />
 
         <div className="mt-8 grid gap-4 lg:grid-cols-4">
           <button
@@ -2640,6 +2712,34 @@ function AcademyManagerDashboard() {
   );
 }
 
+function AssessmentBuilder({ course, onClose }: { course: AcademyCourse; onClose: () => void }) {
+  const [createAssessment, { loading: creating }] = useMutation(CREATE_ACADEMY_ASSESSMENT_MUTATION);
+  const [addQuestion, { loading: adding }] = useMutation(ADD_ASSESSMENT_QUESTION_MUTATION);
+  const [publish, { loading: publishing }] = useMutation(PUBLISH_ASSESSMENT_MUTATION);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [title, setTitle] = useState(""); const [type, setType] = useState("COURSE_ASSESSMENT"); const [sessionId, setSessionId] = useState("");
+  const [question, setQuestion] = useState(""); const [options, setOptions] = useState(["", "", "", ""]); const [correctIndex, setCorrectIndex] = useState("0"); const [message, setMessage] = useState("");
+  const create = async (event: FormEvent) => { event.preventDefault(); try { setMessage(""); const input: any = { courseId: course.id, title, type, maximumScore: 100, passingScore: 50 }; if (type !== "FINAL_EXAM" && sessionId) input.sessionId = sessionId; const result = await createAssessment({ variables: { input } }); setAssessmentId(result.data.createAcademyAssessment.id); setMessage("Assessment created. Add at least one question, then publish it."); } catch (error) { setMessage(error instanceof Error ? error.message : "Assessment could not be created."); } };
+  const add = async () => { if (!assessmentId) return; const cleaned = options.map((option) => option.trim()).filter(Boolean); try { setMessage(""); await addQuestion({ variables: { input: { assessmentId, prompt: question, type: "SINGLE_CHOICE", points: 1, options: cleaned, correctOptionIndexes: [Number(correctIndex)] } } }); setQuestion(""); setOptions(["", "", "", ""]); setCorrectIndex("0"); setMessage("Question added. Add another question or publish the assessment."); } catch (error) { setMessage(error instanceof Error ? error.message : "Question could not be added."); } };
+  const publishAssessment = async () => { if (!assessmentId) return; try { await publish({ variables: { id: assessmentId } }); onClose(); } catch (error) { setMessage(error instanceof Error ? error.message : "Assessment could not be published."); } };
+  const sessions = course.weeks.flatMap((week) => week.sessions.map((session) => ({ ...session, weekTitle: week.title })));
+  return <Modal eyebrow={course.code} title="Create an assessment" onClose={onClose}><div className="space-y-5 p-6">{!assessmentId ? <form onSubmit={create} className="space-y-4"><label className="block text-sm font-semibold">Title<input required value={title} onChange={(e)=>setTitle(e.target.value)} className={`${inputClassName} mt-2`} /></label><label className="block text-sm font-semibold">Assessment type<select value={type} onChange={(e)=>setType(e.target.value)} className={`${inputClassName} mt-2`}><option value="COURSE_ASSESSMENT">Course assessment</option><option value="FINAL_EXAM">Final exam</option></select></label>{type !== "FINAL_EXAM" && <label className="block text-sm font-semibold">Optional session<select value={sessionId} onChange={(e)=>setSessionId(e.target.value)} className={`${inputClassName} mt-2`}><option value="">Course-level assessment</option>{sessions.map((session) => <option key={session.id} value={session.id}>{session.weekTitle} — {session.title}</option>)}</select></label>}<p className="text-xs text-slate-500">A final examination belongs to the course, never a session. Only one can be created for this course.</p><button disabled={creating} className="w-full rounded-xl bg-[#003F8E] py-3 font-semibold text-white">{creating ? "Creating…" : "Create assessment"}</button></form> : <div className="space-y-4"><p className="rounded-xl bg-blue-50 p-3 text-sm text-[#003F8E]">{message || "Add questions before publishing."}</p><label className="block text-sm font-semibold">Question<input value={question} onChange={(e)=>setQuestion(e.target.value)} className={`${inputClassName} mt-2`} /></label>{options.map((option, index) => <label key={index} className="flex items-center gap-3 text-sm"><input type="radio" name="correct-option" checked={correctIndex === String(index)} onChange={()=>setCorrectIndex(String(index))} /><input value={option} onChange={(e)=>setOptions(options.map((item, itemIndex)=>itemIndex===index?e.target.value:item))} placeholder={`Option ${index + 1}`} className="flex-1 rounded-lg border px-3 py-2" /></label>)}<div className="flex gap-3"><button type="button" disabled={adding || !question.trim()} onClick={() => void add()} className="rounded-xl border border-[#003F8E] px-4 py-3 font-semibold text-[#003F8E]">{adding ? "Adding…" : "Add question"}</button><button type="button" disabled={publishing} onClick={() => void publishAssessment()} className="rounded-xl bg-[#003F8E] px-4 py-3 font-semibold text-white">{publishing ? "Publishing…" : "Publish assessment"}</button></div></div>}{message && !assessmentId && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{message}</p>}</div></Modal>;
+}
+
+function ByuReviewQueue() {
+  const { data, loading, refetch } = useQuery(BYU_REVIEW_QUEUE_QUERY, { fetchPolicy: "cache-and-network" });
+  const [review] = useMutation(REVIEW_BYU_MUTATION);
+  const [error, setError] = useState<string | null>(null);
+  const records = data?.byuPathwayReviewQueue ?? [];
+  const decide = async (verificationId: string, approved: boolean) => {
+    const rejectionReason = approved ? undefined : window.prompt("Why is this proof being rejected?") || "";
+    if (!approved && !rejectionReason.trim()) return;
+    try { setError(null); await review({ variables: { input: { verificationId, approved, rejectionReason } } }); await refetch(); }
+    catch (mutationError) { setError(mutationError instanceof Error ? mutationError.message : "The review decision could not be saved."); }
+  };
+  return <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between gap-4"><div><p className="text-sm font-semibold text-[#003F8E]">BYU Pathway verification</p><h3 className="mt-1 text-xl font-bold text-slate-900">Proof awaiting review</h3></div><span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800">{records.length}</span></div>{loading && !data ? <p className="mt-4 text-sm text-slate-500">Loading review queue…</p> : !records.length ? <p className="mt-4 text-sm text-slate-500">No BYU Pathway proof is waiting for review.</p> : <div className="mt-5 space-y-3">{records.map((record: any) => <div key={record.id} className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 md:flex-row md:items-center md:justify-between"><div><p className="font-semibold text-slate-900">{record.email}</p><p className="mt-1 text-xs text-slate-500">Proof: {record.proofFileName || "submitted document"}</p></div><div className="flex gap-2"><button type="button" onClick={() => void decide(record.id, false)} className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700">Reject</button><button type="button" onClick={() => void decide(record.id, true)} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white">Approve</button></div></div>)}</div>}{error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}</section>;
+}
+
 function AcademyLearnerDashboard() {
   const { data, loading, error, refetch } = useQuery<MyAcademyCoursesData>(
     MY_ACADEMY_COURSES_QUERY,
@@ -2649,6 +2749,18 @@ function AcademyLearnerDashboard() {
   );
 
   const courses = data?.myAcademyCourses ?? [];
+  const [markBlockComplete] = useMutation(MARK_BLOCK_COMPLETE_MUTATION);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const completeBlock = async (contentBlockId: string) => {
+    try {
+      setActionError(null);
+      await markBlockComplete({ variables: { contentBlockId } });
+      await refetch();
+    } catch (mutationError) {
+      setActionError(mutationError instanceof Error ? mutationError.message : "The learning block could not be marked complete.");
+    }
+  };
 
   const assessmentCount = courses.reduce(
     (total, course) =>
@@ -2751,6 +2863,8 @@ function AcademyLearnerDashboard() {
           </button>
         </div>
       )}
+
+      {actionError && <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{actionError}</div>}
 
       {!loading && !error && courses.length === 0 && (
         <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -2914,7 +3028,7 @@ function AcademyLearnerDashboard() {
                                             />
                                           </div>
 
-                                          <div className="min-w-0">
+                                          <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-slate-800">
                                               {block.title ||
                                                 contentBlockLabel(block.type)}
@@ -2931,6 +3045,7 @@ function AcademyLearnerDashboard() {
                                               {contentBlockLabel(block.type)}
                                             </p>
                                           </div>
+                                          <button type="button" onClick={() => void completeBlock(block.id)} className="shrink-0 rounded-lg border border-[#003F8E] px-3 py-2 text-xs font-semibold text-[#003F8E] hover:bg-blue-50">Complete</button>
                                         </div>
                                       ))}
                                     </div>
@@ -2942,6 +3057,7 @@ function AcademyLearnerDashboard() {
                         </div>
                       ))}
                     </div>
+                    <LearnerAssessments courseId={course.id} />
                   </article>
                 );
               })}
@@ -2951,6 +3067,28 @@ function AcademyLearnerDashboard() {
       )}
     </div>
   );
+}
+
+function LearnerAssessments({ courseId }: { courseId: string }) {
+  const { data, loading, refetch } = useQuery(MY_ACADEMY_ASSESSMENTS_QUERY, { variables: { courseId }, fetchPolicy: "cache-and-network" });
+  const [start] = useMutation(START_ACADEMY_ASSESSMENT_MUTATION);
+  const [submit] = useMutation(SUBMIT_ACADEMY_ASSESSMENT_MUTATION);
+  const [attempt, setAttempt] = useState<any>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const assessments = data?.myAcademyAssessments ?? [];
+  const begin = async (assessmentId: string) => {
+    try { setFeedback(null); const result = await start({ variables: { assessmentId } }); setAttempt(result.data.startAcademyAssessment); setAnswers({}); }
+    catch (error) { setFeedback(error instanceof Error ? error.message : "The assessment could not be started."); }
+  };
+  const finish = async () => {
+    if (!attempt) return;
+    try { const result = await submit({ variables: { input: { attemptId: attempt.id, answers: Object.entries(answers).map(([questionId, optionId]) => ({ questionId, optionIds: optionId ? [optionId] : [] })) } } }); const response = result.data.submitAcademyAssessment; setFeedback(`${response.passed ? "Passed" : "Not passed"}: ${Math.round(response.percentage)}%.${attempt.assessmentType === "FINAL_EXAM" && !response.passed ? " You may register again using the configured re-enrollment fee." : ""}`); setAttempt(null); await refetch(); }
+    catch (error) { setFeedback(error instanceof Error ? error.message : "The assessment could not be submitted."); }
+  };
+  if (loading && !data) return <p className="mt-5 text-sm text-slate-500">Loading assessments…</p>;
+  if (!assessments.length) return null;
+  return <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5"><h4 className="font-bold text-slate-900">Course assessments</h4><p className="mt-1 text-sm text-slate-500">Assessment results are saved against your enrollment. Passing the final examination completes the course.</p>{feedback && <p className="mt-4 rounded-xl bg-blue-50 p-3 text-sm text-[#003F8E]">{feedback}</p>}{!attempt ? <div className="mt-4 grid gap-3 md:grid-cols-2">{assessments.map((assessment: any) => <div key={assessment.id} className="rounded-xl bg-white p-4 shadow-sm"><p className="font-semibold text-slate-900">{assessment.title}</p><p className="mt-1 text-xs font-bold uppercase text-slate-500">{assessment.type.replaceAll("_", " ")} · Pass {assessment.passingScore ?? 50}%</p><button type="button" onClick={() => void begin(assessment.id)} className="mt-4 rounded-lg bg-[#003F8E] px-3 py-2 text-sm font-semibold text-white">Start assessment</button></div>)}</div> : <div className="mt-4 space-y-5">{attempt.questions.map((question: any) => <fieldset key={question.id} className="rounded-xl bg-white p-4"><legend className="font-semibold text-slate-900">{question.prompt}</legend><div className="mt-3 space-y-2">{question.options.map((option: any) => <label key={option.id} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700"><input type="radio" name={question.id} checked={answers[question.id] === option.id} onChange={() => setAnswers({ ...answers, [question.id]: option.id })} />{option.text}</label>)}</div></fieldset>)}<div className="flex gap-3"><button type="button" onClick={() => setAttempt(null)} className="rounded-lg border px-4 py-2 text-sm font-semibold">Cancel</button><button type="button" onClick={() => void finish()} className="rounded-lg bg-[#003F8E] px-4 py-2 text-sm font-semibold text-white">Submit assessment</button></div></div>}</section>;
 }
 
 export default function AcademyPortalLayout() {
